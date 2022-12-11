@@ -1,0 +1,9 @@
+D:/OneDrive - FH Technikum Wien/3.Semester/Inno/OPENCV-Test/build/CMakeFiles/Experimental.dir
+D:/OneDrive - FH Technikum Wien/3.Semester/Inno/OPENCV-Test/build/CMakeFiles/Nightly.dir
+D:/OneDrive - FH Technikum Wien/3.Semester/Inno/OPENCV-Test/build/CMakeFiles/Continuous.dir
+D:/OneDrive - FH Technikum Wien/3.Semester/Inno/OPENCV-Test/build/CMakeFiles/NightlyMemoryCheck.dir
+D:/OneDrive - FH Technikum Wien/3.Semester/Inno/OPENCV-Test/build/CMakeFiles/opencvtest.dir
+D:/OneDrive - FH Technikum Wien/3.Semester/Inno/OPENCV-Test/build/CMakeFiles/PACKAGE.dir
+D:/OneDrive - FH Technikum Wien/3.Semester/Inno/OPENCV-Test/build/CMakeFiles/RUN_TESTS.dir
+D:/OneDrive - FH Technikum Wien/3.Semester/Inno/OPENCV-Test/build/CMakeFiles/ALL_BUILD.dir
+D:/OneDrive - FH Technikum Wien/3.Semester/Inno/OPENCV-Test/build/CMakeFiles/ZERO_CHECK.dir

@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="D:\OneDrive - FH Technikum Wien\3.Semester\Inno\OPENCV-Test\build\CMakeFiles\9cafc37594a1410fa1c7c04b388066b4\generate.stamp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{61C3C6AA-620E-30EF-9510-B37A7A3C0ADD}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,10 @@
+^D:\ONEDRIVE - FH TECHNIKUM WIEN\3.SEMESTER\INNO\OPENCV-TEST\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" "-SD:/OneDrive - FH Technikum Wien/3.Semester/Inno/OPENCV-Test" "-BD:/OneDrive - FH Technikum Wien/3.Semester/Inno/OPENCV-Test/build" --check-stamp-file "D:/OneDrive - FH Technikum Wien/3.Semester/Inno/OPENCV-Test/build/CMakeFiles/generate.stamp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
