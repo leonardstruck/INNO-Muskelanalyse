@@ -2,6 +2,7 @@ import os
 import cv2
 import matplotlib
 import numpy
+import math
 import sys
 
 
@@ -30,11 +31,6 @@ def getParams(img):
                         bottomRight = [i, j]
                 if i > bottomLeft[0]:
                     bottomLeft = [i, j]
-
-    # print("Top left: ", topLeft)
-    # print("Top right: ", topRight)
-    # print("Bottom left: ", bottomLeft)
-    # print("Bottom right: ", bottomRight)
     midTop = [float((topLeft[0] + topRight[0]) / 2),
               float((topLeft[1] + topRight[1]) / 2)]
     midBottom = [float((bottomLeft[0] + bottomRight[0]) / 2),
@@ -42,7 +38,9 @@ def getParams(img):
     # print("Mid top: ", midTop)
     # print("Mid bottom: ", midBottom)
     # y = kx+d
-
+    direction = math.atan(
+        (midTop[1] - midBottom[1])/(midTop[0] - midBottom[0])) * 180 / math.pi
+    print("Direction: ", direction)
     length = numpy.sqrt(numpy.square(
         midTop[0] - midBottom[0]) + numpy.square(midTop[1] - midBottom[1]))
     print("Length: ", length)
@@ -109,7 +107,7 @@ def checkFragments():
 
 
 def main():
-    print("Hello World")
+    #print("Hello World")
     if os.path.isdir("fragments"):
         print("Fragments folder found")
         checkFragments()
