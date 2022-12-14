@@ -41,6 +41,13 @@ def getParams(img):
     length = numpy.sqrt(numpy.square(
         midTop[0] - midBottom[0]) + numpy.square(midTop[1] - midBottom[1]))
     print("Length: ", length)  # +/- 3 Pixel bis jetzt bei meinen 2 Tests
+    start = (int(midTop[1]), int(midTop[0]))
+    end = (int(midBottom[1]), int(midBottom[0]))
+
+    # show line
+    cv2.line(img, start, end, (255, 0, 255), 1)
+    cv2.imshow("img", img)
+    cv2.waitKey(0)
 
 
 def checkFragments():
