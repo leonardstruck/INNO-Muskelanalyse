@@ -1,15 +1,13 @@
 import imutils
-import argparse
-# import numpy as np
 from imutils import contours
 from imutils import perspective
 from scipy.spatial import distance as dist
 import os
 import cv2
-import matplotlib
 import numpy
 import math
 import sys
+import json
 
 
 def getMidPoint(p1, p2):
@@ -147,17 +145,23 @@ def boxTest(image):
         dA = dist.euclidean((tltrX, tltrY), (blbrX, blbrY))
         dB = dist.euclidean((tlblX, tlblY), (trbrX, trbrY))
         if dA > dB:
-            direction = getDirection((tltrX, tltrY), (blbrX, blbrY))
+            angle = getDirection((tltrX, tltrY), (blbrX, blbrY))
         else:
-            direction = getDirection((tlblX, tlblY), (trbrX, trbrY))
+            angle = getDirection((tlblX, tlblY), (trbrX, trbrY))
         # if the pixels per metric has not been initialized, then
         # compute it as the ratio of pixels to supplied metric
         # (in this case, inches)
         if pixelsPerMetric is None:
             pixelsPerMetric = dB / image.shape[1]
-        print("dA: ", round(dA, 2))
-        print("dB: ", round(dB, 2))
-        print("direction: {}°".format(round(direction, 2)))
+        #print("dA: ", round(dA, 2))
+        #print("dB: ", round(dB, 2))
+        #print("angle: {}°".format(round(angle, 2)))
+        value = {
+            "directionA": round(dA, 2),
+            "directionB": round(dB, 2),
+            "angle": round(angle, 2)
+        }
+        return json.dumps(value)
 
 
 def checkFragmentsFromFolder():
@@ -171,7 +175,7 @@ def checkFragmentsFromFolder():
         if os.path.isfile(f) and img is not None:
             # libpng warning: iCCP: known incorrect sRGB profile
             print("boxTest: ")
-            boxTest(img)
+            return boxTest(img)
             # print("getParams: ")
             # getParams(img)
 
@@ -183,7 +187,7 @@ def checkFragmentsFromArguments():
         img = cv2.imread(arg)
         if img is not None:
             print("boxTest: ")
-            boxTest(img)
+            return boxTest(img)
         else:
             raise Exception("File not an image: " + arg)
 
@@ -191,14 +195,14 @@ def checkFragmentsFromArguments():
 def main():
     if len(sys.argv) > 1:
         print("Arguments found", str(sys.argv))
-        checkFragmentsFromArguments()
+        return checkFragmentsFromArguments()
     else:
         print("No fragments folder found")
         raise Exception("No arguments given")
 
 
 try:
-    main()
+    print(main())
 except Exception as e:
     print("Exception thrown: ", e)
     input("Press any key to exit...")
