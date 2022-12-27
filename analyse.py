@@ -86,10 +86,9 @@ def midpoint(ptA, ptB):
     return ((ptA[0] + ptB[0]) * 0.5, (ptA[1] + ptB[1]) * 0.5)
 
 
-def boxTest(image):
+def boxTest(arg):
     # quelle: https://pyimagesearch.com/2016/03/28/measuring-size-of-objects-in-an-image-with-opencv/
-
-    # image = cv2.imread("fragments/LB17.png")
+    image = cv2.imread(arg)
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     edged = cv2.Canny(gray, 50, 100)
     # close gaps between object edges
@@ -103,8 +102,8 @@ def boxTest(image):
 
     (cnts, _) = contours.sort_contours(cnts)
     pixelsPerMetric = None
-    cv2.imshow("edged", edged)
-    cv2.waitKey(0)
+    # cv2.imshow("edged", edged)
+    # cv2.waitKey(0)
 
     for c in cnts:
         # if the contour is not sufficiently large, ignore it
@@ -139,8 +138,8 @@ def boxTest(image):
                  (255, 0, 255), 1)
         cv2.line(orig, (int(tlblX), int(tlblY)), (int(trbrX), int(trbrY)),
                  (255, 0, 255), 1)
-        cv2.imshow("Image", orig)
-        cv2.waitKey(0)
+        # cv2.imshow("Image", orig)
+        # cv2.waitKey(0)
         # compute the Euclidean distance between the midpoints
         dA = dist.euclidean((tltrX, tltrY), (blbrX, blbrY))
         dB = dist.euclidean((tlblX, tlblY), (trbrX, trbrY))
@@ -157,6 +156,7 @@ def boxTest(image):
         #print("dB: ", round(dB, 2))
         #print("angle: {}°".format(round(angle, 2)))
         value = {
+            "path": arg,
             "directionA": round(dA, 2),
             "directionB": round(dB, 2),
             "angle": round(angle, 2)
@@ -181,15 +181,17 @@ def checkFragmentsFromFolder():
 
 
 def checkFragmentsFromArguments():
+    jsons = []
     for arg in sys.argv[1:]:
         print()
         print(arg)
         img = cv2.imread(arg)
         if img is not None:
             print("boxTest: ")
-            return boxTest(img)
+            jsons.append(boxTest(arg))
         else:
             raise Exception("File not an image: " + arg)
+    return jsons
 
 
 def main():
