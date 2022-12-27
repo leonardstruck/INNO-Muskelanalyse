@@ -1,3 +1,5 @@
 .vscode
 *.png
+*.jpg
+*.jpeg
 .DS_Store

@@ -160,7 +160,7 @@ def boxTest(image):
         print("direction: {}°".format(round(direction, 2)))
 
 
-def checkFragments():
+def checkFragmentsFromFolder():
     directory = "fragments"
     for filename in os.listdir(directory):
         print()
@@ -172,17 +172,33 @@ def checkFragments():
             # libpng warning: iCCP: known incorrect sRGB profile
             print("boxTest: ")
             boxTest(img)
-            print("getParams: ")
-            getParams(img)
+            # print("getParams: ")
+            # getParams(img)
+
+
+def checkFragmentsFromArguments():
+    for arg in sys.argv[1:]:
+        print()
+        print(arg)
+        img = cv2.imread(arg)
+        if img is not None:
+            print("boxTest: ")
+            boxTest(img)
+        else:
+            raise Exception("File not an image: " + arg)
 
 
 def main():
-    if os.path.isdir("fragments"):
-        print("Fragments folder found")
-        checkFragments()
+    if len(sys.argv) > 1:
+        print("Arguments found", str(sys.argv))
+        checkFragmentsFromArguments()
     else:
         print("No fragments folder found")
-        raise Exception("No fragments folder found")
+        raise Exception("No arguments given")
 
 
-main()
+try:
+    main()
+except Exception as e:
+    print("Exception thrown: ", e)
+    input("Press any key to exit...")
