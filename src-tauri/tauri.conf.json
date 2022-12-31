@@ -18,7 +18,7 @@
         "open": true,
         "sidecar": true,
         "scope": [{
-          "name": "../resources/dist/test", "sidecar": true
+          "name": "../resources/dist/test", "sidecar": true, "args": [{"validator": "\\S+"}]
         }]
       }
     },
