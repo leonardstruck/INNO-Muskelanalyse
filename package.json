@@ -9,9 +9,12 @@
     "renameFiles": "node ./resources/renameFiles.js"
   },
   "dependencies": {
+    "@heroicons/react": "^2.0.13",
+    "@next/font": "^13.1.1",
     "@tauri-apps/api": "^1.2.0",
+    "clsx": "^1.2.1",
     "execa": "^6.1.0",
-    "next": "^12.2.5",
+    "next": "13",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
@@ -20,6 +23,9 @@
     "@types/node": "^18.7.11",
     "@types/react": "^18.0.17",
     "@types/react-dom": "^18.0.6",
+    "autoprefixer": "^10.4.13",
+    "postcss": "^8.4.20",
+    "tailwindcss": "^3.2.4",
     "typescript": "^4.7.4"
   }
 }

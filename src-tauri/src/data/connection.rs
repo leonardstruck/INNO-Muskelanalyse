@@ -12,8 +12,6 @@ pub fn establish_connection(app_handle: tauri::AppHandle) -> SqliteConnection {
         .unwrap()
         .to_string();
 
-    println!("Database URL: {}", database_url);
-
     SqliteConnection::establish(&database_url)
         .unwrap_or_else(|_| panic!("Error connecting to {}", database_url))
 }

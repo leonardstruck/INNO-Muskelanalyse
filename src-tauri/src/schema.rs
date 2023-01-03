@@ -2,10 +2,8 @@
 
 diesel::table! {
     cases (id) {
-        id -> Nullable<Integer>,
+        id -> Integer,
         name -> Text,
         description -> Text,
-        created_at -> Timestamp,
-        updated_at -> Timestamp,
     }
 }
