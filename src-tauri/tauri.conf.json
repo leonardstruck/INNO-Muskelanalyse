@@ -17,9 +17,17 @@
         "all": false,
         "open": true,
         "sidecar": true,
-        "scope": [{
-          "name": "../resources/dist/test", "sidecar": true, "args": [{"validator": "\\S+"}]
-        }]
+        "scope": [
+          {
+            "name": "../resources/dist/test",
+            "sidecar": true,
+            "args": [
+              {
+                "validator": "\\S+"
+              }
+            ]
+          }
+        ]
       }
     },
     "bundle": {
@@ -68,10 +76,10 @@
         "fullscreen": false,
         "height": 600,
         "resizable": true,
-        "title": "inno-muskelanalyse",
         "width": 800,
         "minHeight": 600,
-        "minWidth": 800
+        "minWidth": 800,
+        "title": "INNO Muskelanalyse"
       }
     ]
   }
