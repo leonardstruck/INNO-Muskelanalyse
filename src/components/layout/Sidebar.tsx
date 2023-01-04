@@ -15,7 +15,7 @@ type NavigationItem = {
 export const navigation: NavigationItem[] = [
     {
         name: 'Dashboard',
-        href: '/',
+        href: '/dashboard',
         icon: HomeIcon,
     },
     {
@@ -26,7 +26,7 @@ export const navigation: NavigationItem[] = [
 ];
 
 const Sidebar = () => {
-    const { asPath } = useRouter();
+    const { asPath, pathname } = useRouter();
     return (
         <div className="hidden md:fixed md:inset-y-0 md:flex md:w-64 md:flex-col">
             <div className="flex min-h-0 flex-1 flex-col border-r border-gray-200 bg-white dark:bg-gray-900 dark:border-gray-800">
@@ -41,13 +41,13 @@ const Sidebar = () => {
                                 key={item.name}
                                 href={item.href}
                                 className={clsx(
-                                    asPath == item.href ? 'bg-gray-100 text-gray-900' : 'text-gray-600 dark:text-gray-200 hover:bg-gray-50 hover:text-gray-900',
+                                    asPath.includes(item.href) ? 'bg-gray-100 text-gray-900' : 'text-gray-600 dark:text-gray-200 hover:bg-gray-50 hover:text-gray-900',
                                     'group flex items-center px-2 py-2 text-sm font-medium rounded-md'
                                 )}
                             >
                                 <item.icon
                                     className={clsx(
-                                        asPath == item.href ? 'text-gray-500' : 'text-gray-400 group-hover:text-gray-500',
+                                        asPath.includes(item.href) ? 'text-gray-500' : 'text-gray-400 group-hover:text-gray-500',
                                         'mr-3 flex-shrink-0 h-6 w-6'
                                     )}
                                     aria-hidden="true"
