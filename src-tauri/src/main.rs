@@ -4,21 +4,30 @@
 )]
 
 mod data;
+mod models;
+mod schema;
+
+use dotenvy::dotenv;
 
 fn main() {
+    // load .env file
+    dotenv().ok();
+
     tauri::Builder::default()
         .setup(|app| {
             let app_handle = app.handle();
-            let mut connection = data::connection::establish_connection(app_handle);
-            data::migrations::run_migrations(&mut connection);
+            let mut connection = data::establish_connection(app_handle);
+            data::run_migrations(&mut connection);
 
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
-            data::cases::get_cases,
-            data::cases::get_case,
-            data::cases::create_case,
-            data::cases::delete_case,
+            models::case::get_cases,
+            models::case::get_case,
+            models::case::create_case,
+            models::case::delete_case,
+            models::micrograph::get_micrographs_by_case,
+            models::micrograph::import_micrographs
         ])
         .plugin(tauri_plugin_window_state::Builder::default().build())
         .run(tauri::generate_context!())

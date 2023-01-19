@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import Loading from "../../components/layout/Loading";
-import type { Case } from "../../types/Case";
+import type { Case } from "../../../src-tauri/bindings/Case";
 import { invoke } from "@tauri-apps/api/tauri";
 import { useRouter } from "next/router";
 import DeleteCaseModal from "../../components/cases/DeleteCaseModal";
+import ImageBrowser from "../../components/ImageBrowser";
 
 const CasePage = () => {
     const [caseObj, setCaseObj] = useState<Case>();
@@ -14,20 +15,22 @@ const CasePage = () => {
     const router = useRouter();
     const { id } = router.query;
 
+    const caseId = parseInt(id as string);
+
     const handleDelete = async (id: Number) => {
-        await invoke("delete_case", { caseId: id });
+        await invoke("delete_case", { caseId });
         setShowDeleteModal(false);
         router.push("/cases");
     }
 
     useEffect(() => {
-        invoke("get_case", { caseId: Number.parseInt(`${id}`) }).then((res: string) => {
+        invoke("get_case", { caseId }).then((res: string) => {
             setCaseObj(JSON.parse(res) as Case);
             setLoading(false);
         }).catch((err) => {
             console.error(err);
         })
-    }, [])
+    }, [caseId])
 
     if (loading) return <Loading />
 
@@ -94,6 +97,13 @@ const CasePage = () => {
                                 </dd>
                             </div>
                         </dl>
+                    </div>
+                </div>
+
+                <div className="bg-white shadow sm:rounded-lg">
+                    <div className="px-4 py-5 sm:p-6">
+                        <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">Mikroskop-Aufnahmen</h3>
+                        <ImageBrowser caseId={caseId} />
                     </div>
                 </div>
 

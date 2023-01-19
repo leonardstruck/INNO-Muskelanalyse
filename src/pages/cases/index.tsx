@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { invoke } from "@tauri-apps/api/tauri"
-import { Case } from "../../types/Case"
+import { Case } from "../../../src-tauri/bindings/Case"
 import Loading from "../../components/layout/Loading"
 import { useRouter } from "next/router"
 import CreateCaseModal from "../../components/cases/CreateCaseModal"
@@ -38,7 +38,7 @@ const CasePage = () => {
             <div className="flex items-center">
                 <div className="flex-auto">
                     <p className="mt-2 text-sm text-gray-700 dark:text-gray-200">
-                        Hier können die Fälle verwaltet werden. Um einen neuen Fall zu erstellen, klicken Sie auf den Button "Fall erstellen".
+                        Hier können die Fälle verwaltet werden. Um einen neuen Fall zu erstellen, klicken Sie auf den Button &quot;Fall erstellen&quot;.
                     </p>
                 </div>
                 <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">

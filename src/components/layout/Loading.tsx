@@ -1,5 +1,5 @@
 const Loading = () => {
-    return <div className="text-center text-9xl animate-pulse">...</div>
+    return <div className="text-center text-6xl animate-pulse">•••</div>
 }
 
 export default Loading
