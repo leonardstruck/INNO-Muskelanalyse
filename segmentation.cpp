@@ -1,10 +1,13 @@
+#pragma once
+#include <vector>
+
 struct myoSegment{
     int x;
     int y;
     int width;
     int height;
+    
     int ** map;
-
     int minX;
     int maxX;
     int minY;
@@ -12,7 +15,7 @@ struct myoSegment{
 } typedef myoSegment;
 
 
-
+/*
 
 void  contiSegmentation(int x, int y, int *** greenmap, myoSegment * newSegment)
 {
@@ -72,4 +75,4 @@ myoSegment  startSegmentation(int x, int y, int *** greenmap,  int minX, int min
     contiSegmentation(x,y,greenmap,&newSegment);
     
     return newSegment;
-}
+}*/
