@@ -16,6 +16,12 @@
       "dialog": {
         "open": true
       },
+      "protocol": {
+        "asset": true,
+        "assetScope": [
+          "$APPDATA/micrographs/**/*"
+        ]
+      },
       "path": {
         "all": true
       },

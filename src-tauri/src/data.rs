@@ -1,13 +1,18 @@
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations");
 
+pub struct PoolState(pub Pool<ConnectionManager<SqliteConnection>>);
+
 pub fn run_migrations(connection: &mut diesel::sqlite::SqliteConnection) {
     connection.run_pending_migrations(MIGRATIONS).unwrap();
 }
 
 use diesel::prelude::*;
+use diesel::r2d2::{ConnectionManager, Pool};
 
-pub fn establish_connection(app_handle: tauri::AppHandle) -> SqliteConnection {
+pub fn get_connection_pool(
+    app_handle: tauri::AppHandle,
+) -> Pool<ConnectionManager<SqliteConnection>> {
     let app_dir = app_handle
         .path_resolver()
         .app_data_dir()
@@ -27,6 +32,12 @@ pub fn establish_connection(app_handle: tauri::AppHandle) -> SqliteConnection {
         }
     }
 
-    SqliteConnection::establish(&database_url)
-        .unwrap_or_else(|_| panic!("Error connecting to {}", database_url))
+    let manager = ConnectionManager::<SqliteConnection>::new(database_url);
+    // Refer to the `r2d2` documentation for more methods to use
+    // when building a connection pool
+    Pool::builder()
+        .test_on_check_out(true)
+        .max_size(1)
+        .build(manager)
+        .expect("Could not build connection pool")
 }

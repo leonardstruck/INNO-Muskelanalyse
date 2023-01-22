@@ -24,6 +24,7 @@ diesel::table! {
         name -> Text,
         path -> Nullable<Text>,
         import_path -> Nullable<Text>,
+        thumbnail_path -> Nullable<Text>,
         file_size -> Integer,
         file_type -> Text,
         status -> Text,

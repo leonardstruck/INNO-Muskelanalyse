@@ -4,6 +4,7 @@ CREATE TABLE micrographs (
   name TEXT NOT NULL,
   path TEXT,
   import_path TEXT,
+  thumbnail_path TEXT,
   file_size INTEGER NOT NULL,
   file_type TEXT NOT NULL,
 
