@@ -78,8 +78,8 @@ def getParams(img):
     # show line
     lined = img.copy()
     cv2.line(lined, start, end, (255, 0, 255), 1)
-    cv2.imshow("img", lined)
-    cv2.waitKey(0)
+    #cv2.imshow("img", lined)
+    # cv2.waitKey(0)
 
 
 def midpoint(ptA, ptB):
@@ -87,7 +87,6 @@ def midpoint(ptA, ptB):
 
 
 def boxTest(arg):
-    # quelle: https://pyimagesearch.com/2016/03/28/measuring-size-of-objects-in-an-image-with-opencv/
     image = cv2.imread(arg)
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     edged = cv2.Canny(gray, 50, 100)
@@ -138,7 +137,7 @@ def boxTest(arg):
                  (255, 0, 255), 1)
         cv2.line(orig, (int(tlblX), int(tlblY)), (int(trbrX), int(trbrY)),
                  (255, 0, 255), 1)
-        # cv2.imshow("Image", orig)
+        #cv2.imshow("Image", orig)
         # cv2.waitKey(0)
         # compute the Euclidean distance between the midpoints
         dA = dist.euclidean((tltrX, tltrY), (blbrX, blbrY))
@@ -165,19 +164,23 @@ def boxTest(arg):
 
 
 def checkFragmentsFromFolder():
-    directory = "fragments"
+    directory = "fragments/Neuer"
+    print(directory)
+    jsons = []
     for filename in os.listdir(directory):
         print()
         print(filename)
         f = os.path.join(directory, filename)
         # checking if it is a file
-        img = cv2.imread(f)
-        if os.path.isfile(f) and img is not None:
-            # libpng warning: iCCP: known incorrect sRGB profile
-            print("boxTest: ")
-            return boxTest(img)
-            # print("getParams: ")
-            # getParams(img)
+        print("file: ", f)
+        if os.path.isfile(f):
+            img = cv2.imread(f)
+            if img is not None:
+                # libpng warning: iCCP: known incorrect sRGB profile
+                print("boxTest: ")
+                jsons.append(boxTest(filename))
+                # print("getParams: ")
+                # getParams(img)
 
 
 def checkFragmentsFromArguments():
@@ -188,17 +191,46 @@ def checkFragmentsFromArguments():
         img = cv2.imread(arg)
         if img is not None:
             print("boxTest: ")
-            jsons.append(boxTest(arg))
+            try:
+                jsons.append(boxTest(arg))
+            except Exception as e:
+                print("Exception thrown: ", e)
         else:
             raise Exception("File not an image: " + arg)
+    return jsons
+
+
+def checkFragmentsFromDirectory(directory):
+    os.chdir(directory)
+    print(directory)
+    jsons = []
+    for file in os.listdir(directory):
+        if os.path.isdir(file):
+            continue
+        print()
+        print("file: ", file)
+        img = cv2.imread(file)
+        if img is not None:
+            print("boxTest: ")
+            try:
+                jsons.append(boxTest(file))
+            except Exception as e:
+                print("Exception thrown: ", e)
+        else:
+            #raise Exception("File not an image: " + file)
+            print("File not an image: " + file)
     return jsons
 
 
 def main():
     if len(sys.argv) > 1:
         print("Arguments found", str(sys.argv))
-        return checkFragmentsFromArguments()
+        if sys.argv[1] == "-d":
+            return checkFragmentsFromDirectory(sys.argv[2])
+        else:
+            return checkFragmentsFromArguments()
     else:
+        return checkFragmentsFromFolder()
         print("No fragments folder found")
         raise Exception("No arguments given")
 
