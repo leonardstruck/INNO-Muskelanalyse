@@ -87,35 +87,35 @@ inline bool fileExists(const std::string& name) {
 
 int main(int argc, char *argv[]) {   
 
-
-    const string picture = "D:/FH_offline/InnoLab/slices/test.png";
-    string folder = "D:/FH_offline/InnoLab/newSegmente";
-    string jsonFolder = "D:/FH_offline/InnoLab/";
-    string jsonFile = "segmente.json";
+    
 
     //check parameters
-    if(argc >= 3)
+    if(argc < 3)
     {
-        const string picture = argv[1];
-        string folder = argv[2];
-        string jsonFolder = argv[2];
-        string jsonFile = "segmente.json";
-
-        if(argc > 3)
-        {
-            jsonFolder = argv[3];
-        }
-
-        folder = (folder.back() == '/') ? folder : folder+"/";
-        
-        
-
-        if(!fileExists(picture))
-        {
-            printf("file: '%s' could not be opened\n",picture.c_str());
-            return -1;
-        }
+        printf("Usage: ./opencvtest <file to image> <folder to export> <(optional) folder for json>");
+        return -1;
     }
+
+
+    const string picture = argv[1];
+    string folder = argv[2];
+    string jsonFolder = argv[2];
+    string jsonFile = "segmente.json";
+    if(argc > 3)
+    {
+        jsonFolder = argv[3];
+    }
+
+    folder = (folder.back() == '/') ? folder : folder+"/";
+        
+        
+
+    if(!fileExists(picture))
+    {
+        printf("file: '%s' could not be opened\n",picture.c_str());
+        return -1;
+    }
+    
 
     
 
@@ -492,14 +492,14 @@ int main(int argc, char *argv[]) {
         
     
     //imwrite("D:/FH_offline/InnoLab/slices/export3.jpg", result);
-    namedWindow("Display Compare", WINDOW_NORMAL);
-    imshow("Display Compare", image);
+    //namedWindow("Display Compare", WINDOW_NORMAL);
+    //imshow("Display Compare", image);
 
     // namedWindow("Display Compare2", WINDOW_NORMAL);
     // imshow("Display Compare2", result);
     auto done = std::chrono::high_resolution_clock::now();
     //std::cout << "\nMilliseconds: " << std::chrono::duration_cast<std::chrono::milliseconds>(done-started).count() << "\n";
-    waitKey(0);
+    //waitKey(0);
     return 0;
 
 }
