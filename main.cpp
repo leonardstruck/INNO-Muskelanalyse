@@ -8,7 +8,9 @@
 #include "segmentation.cpp"
 #include "segmentor.cpp"
 #include "segment.cpp"
-#include <iostream>
+#include <fstream>
+#include <string>
+
 
 using namespace cv;
 Mat src, src_gray;
@@ -44,10 +46,10 @@ int maxGreen(Mat image, int rows, int cols)
     {
         for(int x = 0; x < cols; x++)
         {
-            //if(image.at<Vec3b>(y,x)[1] > green)
-            //{
+            if(image.at<Vec3b>(y,x)[1] > green)
+            {
                 green = image.at<Vec3b>(y,x)[1];
-            //}
+            }
         }
     }
     return green;
@@ -73,12 +75,49 @@ int maxGreen(Mat image, int rows, int cols)
 
 }*/
 
+inline bool fileExists(const std::string& name) {
+    ifstream f(name.c_str());
+    return f.good();
+}
 
 
 
 
 
-int main(int, char**) {   
+
+int main(int argc, char *argv[]) {   
+
+
+    const string picture = "D:/FH_offline/InnoLab/slices/test.png";
+    string folder = "D:/FH_offline/InnoLab/newSegmente";
+    string jsonFolder = "D:/FH_offline/InnoLab/";
+    string jsonFile = "segmente.json";
+
+    //check parameters
+    if(argc >= 3)
+    {
+        const string picture = argv[1];
+        string folder = argv[2];
+        string jsonFolder = argv[2];
+        string jsonFile = "segmente.json";
+
+        if(argc > 3)
+        {
+            jsonFolder = argv[3];
+        }
+
+        folder = (folder.back() == '/') ? folder : folder+"/";
+        
+        
+
+        if(!fileExists(picture))
+        {
+            printf("file: '%s' could not be opened\n",picture.c_str());
+            return -1;
+        }
+    }
+
+    
 
     auto started = std::chrono::high_resolution_clock::now();
     bool debugbool = false;
@@ -88,7 +127,7 @@ int main(int, char**) {
     
     
 
-    image = imread("D:/FH_offline/InnoLab/slices/test.png");
+    image = imread(picture);
 
     
 
@@ -109,8 +148,6 @@ int main(int, char**) {
     for(int i = 0; i < image.rows; i++)
     {
         greenmap[i] = new int[image.cols];
-
-        
     }
 
     
@@ -123,9 +160,9 @@ int main(int, char**) {
 
 
     int avg = averageGreen(image, result.rows,result.cols);
-    int max = maxGreen(image, result.rows,result.cols);
+    //int max = maxGreen(image, result.rows,result.cols);
 
-    printf("AVG:%d\nMAX:%d\n",avg,max);
+    //printf("AVG:%d\nMAX:%d\n",avg,max);
     int near = 0;
     for(int y = 0; y < compare.rows; y++)
     {
@@ -215,8 +252,11 @@ int main(int, char**) {
         }          
 
     }
-    int border = 0;
-    /*for(int y = 0; y < compare.rows; y++)
+
+
+    //              border 
+    /*int border = 0;
+    for(int y = 0; y < compare.rows; y++)
     {
         for(int x = 0; x < compare.cols; x++)
         {
@@ -242,14 +282,12 @@ int main(int, char**) {
     
     Segmentor * harry = new Segmentor(&greenmap,0,result.rows,result.cols);
     
-    printf("Segmente: %zd", harry->segmente.size());
+    //printf("Segmente: %zd", harry->segmente.size());
     
        
     
-    
-   /*
-    
-    int currentseg = 0;
+    // blob detection
+   /*int currentseg = 0;
     for(std::vector<myoSegment>::iterator it = harry->segmente.begin(); it != harry->segmente.end(); ++it)
     {
         
@@ -353,17 +391,34 @@ int main(int, char**) {
             rectangle(result,p1,p2,Scalar(0,0,255),2,LINE_8);
         }
     }*/
+    
+    
 
+    
+    jsonFile = (jsonFolder.back() != '/') ? jsonFolder : jsonFolder+"/"+jsonFile;
+    
+    
+
+    ofstream outputJson(jsonFile);
+
+    if(!fileExists(jsonFile))
+    {
+        printf("JSON: \"%s\" could not be created",jsonFile.c_str());
+        return -1;
+    }
+    
+    outputJson << "[\n";
+    printf("[\n");
     for(std::vector<myoSegment>::iterator it = harry->segmente.begin(); it != harry->segmente.end(); ++it)
     {
 
         if(it[0].height * it[0].width > 300)
         {
-            //printf("Size: %dx%d\n", it[0].height,it[0].width);
+            
             
             Mat seg(it[0].height,it[0].width,  CV_8UC3);
 
-            //printf("Matsize: %dx%d \n",seg.rows,seg.cols);
+           
             for(int y = 0; y < it[0].height; y++)
             {
                 for(int x = 0; x < it[0].width; x++)
@@ -390,14 +445,46 @@ int main(int, char**) {
                 }
             }
            
-            //namedWindow("Display Compare2"+ to_string(it[0].minX) + "-" + to_string(it[0].minY), WINDOW_NORMAL);
-            //imshow("Display Compare2"+ to_string(it[0].minX) + "-" + to_string(it[0].minY), seg);
-            imwrite("D:/FH_offline/InnoLab/segmente/seg" + to_string(it[0].minX) + "-" + to_string(it[0].minY) + ".jpg", seg);
+            if(it != harry->segmente.begin() && it != harry->segmente.end())
+            {
+                outputJson << ",\n";
+                printf(",\n");
+            }
+            string path = folder + "seg" + to_string(it[0].minX) + "-" + to_string(it[0].minY) + ".jpg";
+
+            outputJson << "{\"path\":\""+path+"\",\"y\":"+to_string(it[0].minY)+",\"x\":"+to_string(it[0].minX)+",\"height\":"+to_string(it[0].height)+",\"width\":"+to_string(it[0].width)+"}";
+
+
+            printf("{\"path\":\"%s\",\"y\":%d,\"x\":%d,\"height\":%d,\"width\":%d}",path.c_str(),it[0].minY,it[0].minX,it[0].height,it[0].width);
+            imwrite(path, seg);
         }
     }
-    
+    printf("\n]");
+    outputJson << "\n]";
 
-    
+    outputJson.close();
+
+    for(std::vector<myoSegment>::iterator it = harry->segmente.begin(); it != harry->segmente.end(); ++it)
+    {
+        if(it[0].height * it[0].width > 300)
+        {
+            Point p1(it[0].minX,it[0].minY);
+            Point p2(it[0].minX+it[0].width,it[0].minY+it[0].height);
+
+            rectangle(image,p1,p2,Scalar(0,0,255),2,LINE_8);
+        }
+    }
+
+    namedWindow("Display Compare", WINDOW_NORMAL);
+    imshow("Display Compare", image);
+
+
+    /*Segment:
+    string path,
+    int x, 
+    int y,
+    int length,
+    int width,*/
 
     
 
@@ -405,29 +492,14 @@ int main(int, char**) {
         
     
     //imwrite("D:/FH_offline/InnoLab/slices/export3.jpg", result);
-    // namedWindow("Display Compare1", WINDOW_NORMAL);
-    // imshow("Display Compare1", compare);
+    namedWindow("Display Compare", WINDOW_NORMAL);
+    imshow("Display Compare", image);
 
     // namedWindow("Display Compare2", WINDOW_NORMAL);
     // imshow("Display Compare2", result);
     auto done = std::chrono::high_resolution_clock::now();
-    std::cout << "\nMilliseconds: " << std::chrono::duration_cast<std::chrono::milliseconds>(done-started).count() << "\n";
+    //std::cout << "\nMilliseconds: " << std::chrono::duration_cast<std::chrono::milliseconds>(done-started).count() << "\n";
     waitKey(0);
     return 0;
+
 }
-
-
-
-
-// int main( int argc, char** argv )
-// {
-  
-//   src = imread( samples::findFile("D:/FH_offline/InnoLab/slices/test.png"), IMREAD_COLOR ); // Load an image
-//   if( src.empty() )
-//   {
-//     std::cout << "Could not open or find the image!\n" << std::endl;
-//     std::cout << "Usage: " << argv[0] << " <Input image>" << std::endl;
-//     return -1;
-//   }
-  
-// }
