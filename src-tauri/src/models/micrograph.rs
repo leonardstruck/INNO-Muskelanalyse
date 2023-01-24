@@ -1,4 +1,4 @@
-use std::{fs, future::Future};
+use std::fs;
 
 use diesel::prelude::*;
 
