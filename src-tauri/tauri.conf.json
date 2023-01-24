@@ -29,15 +29,11 @@
         "all": false,
         "open": true,
         "sidecar": true,
+        "execute": true,
         "scope": [
           {
-            "name": "../resources/dist/test",
-            "sidecar": true,
-            "args": [
-              {
-                "validator": "\\S+"
-              }
-            ]
+            "name": "binaries/segmentation",
+            "sidecar": true
           }
         ]
       }
@@ -50,7 +46,7 @@
         "depends": []
       },
       "externalBin": [
-        "../resources/dist/test"
+        "binaries/segmentation"
       ],
       "icon": [
         "icons/32x32.png",

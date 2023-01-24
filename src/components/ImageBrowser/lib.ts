@@ -43,4 +43,5 @@ const fetchMicrographs = ({ caseId }: FetchMicrographsProps): Promise<Micrograph
     return invoke("get_micrographs", { queryCaseId: caseId }).then((response: string) => JSON.parse(response) as Micrograph[]);
 }
 
+
 export { handleImport, fetchMicrographs };
