@@ -18,5 +18,5 @@ CREATE TABLE case_micrographs (
   case_id INTEGER NOT NULL,
   micrograph_id TEXT NOT NULL,
   FOREIGN KEY (case_id) REFERENCES cases(id) ON DELETE CASCADE,
-  FOREIGN KEY (micrograph_id) REFERENCES micrograph(id) ON DELETE CASCADE 
+  FOREIGN KEY (micrograph_id) REFERENCES micrographs(uuid) ON DELETE CASCADE 
 );

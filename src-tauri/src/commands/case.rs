@@ -54,3 +54,17 @@ pub async fn create_case(
         Err(e) => Err("Error creating case: ".to_string() + &e.to_string()),
     }
 }
+
+#[tauri::command]
+pub async fn delete_case(state: tauri::State<'_, PoolState>, id: i32) -> Result<String, String> {
+    use crate::schema::cases::dsl;
+
+    let mut connection = get_connection(state).unwrap();
+
+    let results = diesel::delete(dsl::cases.filter(dsl::id.eq(id))).execute(&mut connection);
+
+    match results {
+        Ok(results) => Ok(serde_json::to_string(&results).unwrap()),
+        Err(e) => Err("Error deleting case: ".to_string() + &e.to_string()),
+    }
+}

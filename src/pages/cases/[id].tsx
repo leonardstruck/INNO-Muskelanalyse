@@ -7,9 +7,11 @@ import DeleteCaseModal from "../../components/cases/DeleteCaseModal";
 import ImageBrowser from "../../components/ImageBrowser";
 
 import useSWR from "swr";
+import useSWRMutation from "swr/mutation";
 
 
 const fetcher = (id: number) => invoke("get_case", { id }).then((res: string) => JSON.parse(res) as Case);
+const deleteCase = async (url, { arg }: { arg: number }) => { await invoke("delete_case", { id: arg }) };
 
 const CasePage = () => {
     const router = useRouter();
@@ -18,15 +20,11 @@ const CasePage = () => {
     const caseId = parseInt(id as string);
 
     const { data, error, isLoading } = useSWR(`/cases/${caseId}`, () => fetcher(caseId));
+    const { trigger, isMutating, error: deleteError } = useSWRMutation("/cases", deleteCase, {
+        onSuccess: () => router.push("/cases")
+    });
 
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-
-
-    const handleDelete = async (id: Number) => {
-        await invoke("delete_case", { caseId });
-        setShowDeleteModal(false);
-        router.push("/cases");
-    }
 
     if (error) return <div>Failed to load</div>
     if (isLoading) return <Loading />
@@ -70,7 +68,7 @@ const CasePage = () => {
             </div>
 
             {/* DELETE MODAL */}
-            <DeleteCaseModal open={showDeleteModal} setOpen={setShowDeleteModal} handleDelete={() => handleDelete(Number.parseInt(`${id}`))} />
+            <DeleteCaseModal open={showDeleteModal} setOpen={setShowDeleteModal} handleDelete={() => trigger(data.id)} />
         </>
     )
 }
