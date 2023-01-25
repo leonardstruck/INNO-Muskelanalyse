@@ -30,3 +30,5 @@ build
 # database
 *.sqlite
 src-tauri/.env
+
+.env
