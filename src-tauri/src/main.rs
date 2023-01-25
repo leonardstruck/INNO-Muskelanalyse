@@ -9,22 +9,11 @@ mod events;
 mod models;
 mod schema;
 
-use dotenvy::dotenv;
 use tauri::Manager;
 
 use data::PoolState;
 
 fn main() {
-    // load .env file
-    // create .env file if it doesn't exist
-
-    let env_exists = std::path::Path::new(".env").exists();
-    if !env_exists {
-        std::fs::write(".env", "").unwrap_or_default();
-    }
-
-    dotenv().unwrap();
-
     tauri::Builder::default()
         .manage(PoolState)
         .setup(|app| {
