@@ -29,19 +29,6 @@ pub fn get_connection_pool(
         .unwrap()
         .to_string();
 
-    if cfg!(debug_assertions) {
-        // check if DATABASE_URL equals database_url
-        if std::env::var("DATABASE_URL").unwrap_or(String::new())
-            != database_url.clone().replace("\\", "/")
-        {
-            println!("Please update DATABASE_URL in the .env file:");
-            println!(
-                "DATABASE_URL=\"{}\"",
-                database_url.clone().replace("\\", "/")
-            );
-        }
-    }
-
     let manager = ConnectionManager::<SqliteConnection>::new(database_url);
     // Refer to the `r2d2` documentation for more methods to use
     // when building a connection pool

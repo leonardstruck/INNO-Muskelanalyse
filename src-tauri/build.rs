@@ -1,7 +1,8 @@
 fn main() {
     use cmake::Config;
 
-    let segmentation_path = std::env::current_dir().unwrap()
+    let segmentation_path = std::env::current_dir()
+        .unwrap()
         .join("resources")
         .join("segmentation");
     let segmentation_bin = Config::new(segmentation_path).build();
@@ -28,7 +29,8 @@ fn move_binary(out_dir: &str, target_name: &str) {
 
     // generate target path
 
-    let target_path = std::env::current_dir().unwrap()
+    let target_path = std::env::current_dir()
+        .unwrap()
         .join("resources")
         .join(target_name)
         .join("bin")
@@ -39,13 +41,9 @@ fn move_binary(out_dir: &str, target_name: &str) {
         std::fs::create_dir_all(target_path.parent().unwrap()).unwrap();
     }
 
-
     // generate original path
-   
-    let original_path = std::path::Path::new(out_dir)
-        .join(format!("{}{}", target_name, extension));
 
-    cargo_emit::warning!("Copying {} to {}", original_path.display(), target_path.display());
+    let original_path = std::path::Path::new(out_dir).join(format!("{}{}", target_name, extension));
 
     // delete target file if it exists
     std::fs::remove_file(&target_path).unwrap_or(());
