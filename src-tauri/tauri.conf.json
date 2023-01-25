@@ -32,8 +32,9 @@
         "execute": true,
         "scope": [
           {
-            "name": "binaries/segmentation",
-            "sidecar": true
+            "name": "resources/segmentation/bin/segmentation",
+            "sidecar": true,
+            "args": true
           }
         ]
       }
@@ -46,7 +47,7 @@
         "depends": []
       },
       "externalBin": [
-        "binaries/segmentation"
+        "resources/segmentation/bin/segmentation"
       ],
       "icon": [
         "icons/32x32.png",

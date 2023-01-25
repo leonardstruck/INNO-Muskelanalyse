@@ -1,6 +1,7 @@
 fn main() {
     use cmake::Config;
-    let segmentation_bin = Config::new("../resources/segmentation").build();
+
+    let segmentation_bin = Config::new("resources/segmentation").build();
 
     move_binary(
         segmentation_bin.join("bin/segmentation").to_str().unwrap(),
@@ -22,7 +23,10 @@ fn move_binary(original_path: &str, target_name: &str) {
     let target_triple = CURRENT_PLATFORM;
 
     // generate target path
-    let target_path = format!("binaries/{}-{}{}", target_name, target_triple, extension);
+    let target_path = format!(
+        "resources/{}/bin/{}-{}{}",
+        target_name, target_name, target_triple, extension
+    );
     let target_path = std::env::current_dir().unwrap().join(target_path);
 
     // check if directory exists
