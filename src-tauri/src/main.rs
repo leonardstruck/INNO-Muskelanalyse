@@ -31,6 +31,7 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             crate::commands::case::get_cases,
             crate::commands::case::get_case,
+            crate::commands::case::create_case,
         ])
         .plugin(tauri_plugin_window_state::Builder::default().build())
         .run(tauri::generate_context!())

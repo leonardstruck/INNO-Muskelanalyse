@@ -6,6 +6,8 @@ import Button from "../Button";
 
 import { invoke } from "@tauri-apps/api/tauri";
 
+import useSWRMutation from "swr/mutation";
+import type { Case } from "../../../src-tauri/bindings/Case";
 
 type CreateCaseModalProps = {
     // pass useState setter function to close modal
@@ -14,33 +16,24 @@ type CreateCaseModalProps = {
     modalOpen: boolean;
 }
 
+async function createCase(key, { arg }: { arg: Pick<Case, "name" | "description"> }) {
+    await invoke("create_case", { case: JSON.stringify(arg) });
+};
+
+
 const CreateCaseModal = ({ setModalOpen, modalOpen }: CreateCaseModalProps) => {
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
-    const [loading, setLoading] = useState(false);
 
-    async function createCase() {
-        setLoading(true);
-
-        const caseObj = JSON.stringify({
-            name,
-            description,
-        });
-
-        await invoke("create_case", { caseObj }).then(() => {
-            handleClose();
-        }).catch((err) => {
-            console.log(err);
-            setLoading(false);
-        })
-    }
-
-    function handleClose() {
+    const handleClose = () => {
         setName("");
         setDescription("");
-        setLoading(false);
         setModalOpen(false);
     }
+
+    const { trigger, isMutating, error } = useSWRMutation("/cases", createCase, {
+        onSuccess: handleClose
+    });
 
     return (
         <Transition.Root show={modalOpen} as={Fragment}>
@@ -98,7 +91,7 @@ const CreateCaseModal = ({ setModalOpen, modalOpen }: CreateCaseModalProps) => {
                                                     </div>
                                                     <div className="sm:col-span-2">
                                                         <input
-                                                            disabled={loading}
+                                                            disabled={isMutating}
                                                             type="text"
                                                             name="project-name"
                                                             id="project-name"
@@ -121,7 +114,7 @@ const CreateCaseModal = ({ setModalOpen, modalOpen }: CreateCaseModalProps) => {
                                                     </div>
                                                     <div className="sm:col-span-2">
                                                         <textarea
-                                                            disabled={loading}
+                                                            disabled={isMutating}
                                                             id="project-description"
                                                             name="project-description"
                                                             value={description}
@@ -139,7 +132,7 @@ const CreateCaseModal = ({ setModalOpen, modalOpen }: CreateCaseModalProps) => {
                                         <div className="flex-shrink-0 border-t border-gray-200 px-4 py-5 sm:px-6">
                                             <div className="flex justify-end space-x-3">
                                                 <Button onClick={handleClose} theme="secondary">Abbrechen</Button>
-                                                <Button onClick={createCase} disabled={loading} theme="primary" loading={loading}>Fall erstellen</Button>
+                                                <Button onClick={() => trigger({ name, description })} disabled={isMutating} theme="primary" loading={isMutating}>Fall erstellen</Button>
                                             </div>
                                         </div>
                                     </form>

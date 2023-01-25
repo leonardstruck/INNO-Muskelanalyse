@@ -32,3 +32,25 @@ pub async fn get_case(state: tauri::State<'_, PoolState>, id: i32) -> Result<Str
         Err(e) => Err("Error loading case: ".to_string() + &e.to_string()),
     }
 }
+
+#[tauri::command]
+pub async fn create_case(
+    state: tauri::State<'_, PoolState>,
+    case: String,
+) -> Result<String, String> {
+    use crate::models::case::NewCase;
+    use crate::schema::cases::dsl;
+
+    let mut connection = get_connection(state).unwrap();
+
+    let new_case: NewCase = serde_json::from_str(&case).unwrap();
+
+    let results = diesel::insert_into(dsl::cases)
+        .values(&new_case)
+        .execute(&mut connection);
+
+    match results {
+        Ok(results) => Ok(serde_json::to_string(&results).unwrap()),
+        Err(e) => Err("Error creating case: ".to_string() + &e.to_string()),
+    }
+}
