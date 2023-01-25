@@ -8,7 +8,7 @@ pub fn run_migrations(connection: &mut diesel::sqlite::SqliteConnection) {
 }
 
 use diesel::prelude::*;
-use diesel::r2d2::{ConnectionManager, Pool};
+use diesel::r2d2::{ConnectionManager, Pool, PooledConnection};
 
 pub fn get_connection_pool(
     app_handle: tauri::AppHandle,
@@ -31,9 +31,14 @@ pub fn get_connection_pool(
 
     if cfg!(debug_assertions) {
         // check if DATABASE_URL equals database_url
-        if std::env::var("DATABASE_URL").unwrap_or(String::new()) != database_url.clone().replace("\\", "/") {
+        if std::env::var("DATABASE_URL").unwrap_or(String::new())
+            != database_url.clone().replace("\\", "/")
+        {
             println!("Please update DATABASE_URL in the .env file:");
-            println!("DATABASE_URL=\"{}\"", database_url.clone().replace("\\", "/"));
+            println!(
+                "DATABASE_URL=\"{}\"",
+                database_url.clone().replace("\\", "/")
+            );
         }
     }
 
@@ -45,4 +50,13 @@ pub fn get_connection_pool(
         .max_size(1)
         .build(manager)
         .expect("Could not build connection pool")
+}
+
+pub fn get_connection(
+    state: tauri::State<'_, PoolState>,
+) -> Result<PooledConnection<ConnectionManager<SqliteConnection>>, String> {
+    state
+        .0
+        .get()
+        .map_err(|e| format!("Could not get connection from pool: {}", e))
 }

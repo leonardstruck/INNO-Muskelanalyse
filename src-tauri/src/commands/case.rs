@@ -1,4 +1,4 @@
-use crate::data::PoolState;
+use crate::data::{get_connection, PoolState};
 use diesel::prelude::*;
 
 #[tauri::command]
@@ -6,7 +6,7 @@ pub async fn get_cases(state: tauri::State<'_, PoolState>) -> Result<String, Str
     use crate::models::case::Case;
     use crate::schema::cases::dsl::*;
 
-    let mut connection = state.0.get().unwrap();
+    let mut connection = get_connection(state).unwrap();
 
     let results = cases.load::<Case>(&mut connection);
 
@@ -21,7 +21,7 @@ pub async fn get_case(state: tauri::State<'_, PoolState>, id: i32) -> Result<Str
     use crate::models::case::Case;
     use crate::schema::cases::dsl;
 
-    let mut connection = state.0.get().unwrap();
+    let mut connection = get_connection(state).unwrap();
 
     let results = dsl::cases
         .filter(dsl::id.eq(id))
