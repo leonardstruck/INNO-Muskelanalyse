@@ -6,16 +6,21 @@ import { useRouter } from "next/router";
 import DeleteCaseModal from "../../components/cases/DeleteCaseModal";
 import ImageBrowser from "../../components/ImageBrowser";
 
+import useSWR from "swr";
+
+
+const fetcher = (id: number) => invoke("get_case", { id }).then((res: string) => JSON.parse(res) as Case);
+
 const CasePage = () => {
-    const [caseObj, setCaseObj] = useState<Case>();
-    const [loading, setLoading] = useState(true);
-
-    const [showDeleteModal, setShowDeleteModal] = useState(false);
-
     const router = useRouter();
     const { id } = router.query;
 
     const caseId = parseInt(id as string);
+
+    const { data, error, isLoading } = useSWR(`/cases/${caseId}`, () => fetcher(caseId));
+
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+
 
     const handleDelete = async (id: Number) => {
         await invoke("delete_case", { caseId });
@@ -23,16 +28,8 @@ const CasePage = () => {
         router.push("/cases");
     }
 
-    useEffect(() => {
-        invoke("get_case", { caseId }).then((res: string) => {
-            setCaseObj(JSON.parse(res) as Case);
-            setLoading(false);
-        }).catch((err) => {
-            console.error(err);
-        })
-    }, [caseId])
-
-    if (loading) return <Loading />
+    if (error) return <div>Failed to load</div>
+    if (isLoading) return <Loading />
 
     return (
         <>
@@ -40,8 +37,8 @@ const CasePage = () => {
                 <a onClick={() => router.push("/cases")} className="text-gray-600 hover:text-gray-900 cursor-pointer">← Übersicht</a>
                 <div className="bg-white shadow sm:rounded-lg">
                     <div className="px-4 py-5 sm:px-6">
-                        <h3 className="text-lg font-medium leading-6 text-gray-900"><>{caseObj.name} (Fall-ID: {caseObj.id})</></h3>
-                        <p className="mt-1 max-w-2xl text-sm text-gray-500">{caseObj.description}</p>
+                        <h3 className="text-lg font-medium leading-6 text-gray-900"><>{data.name} (Fall-ID: {data.id})</></h3>
+                        <p className="mt-1 max-w-2xl text-sm text-gray-500">{data.description}</p>
                     </div>
                 </div>
 

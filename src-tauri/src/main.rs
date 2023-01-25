@@ -39,7 +39,10 @@ fn main() {
 
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![crate::commands::case::get_cases])
+        .invoke_handler(tauri::generate_handler![
+            crate::commands::case::get_cases,
+            crate::commands::case::get_case,
+        ])
         .plugin(tauri_plugin_window_state::Builder::default().build())
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
