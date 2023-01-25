@@ -6,25 +6,21 @@ import { useRouter } from "next/router"
 import CreateCaseModal from "../../components/cases/CreateCaseModal"
 import clsx from "clsx"
 import EmptyCaseList from "../../components/cases/EmptyCaseList"
+import useSWR from "swr"
 
+const fetcher = () => invoke("get_cases").then((res: string) => JSON.parse(res) as Case[]);
 
 const CasePage = () => {
     const router = useRouter();
-    const [cases, setCases] = useState<Case[]>([]);
-    const [loading, setLoading] = useState(true);
+
+    const { data, error, isLoading } = useSWR("/cases", fetcher);
 
     const [showModal, setShowModal] = useState(false);
 
-    useEffect(() => {
-        invoke("get_cases").then((res: string) => {
-            setCases(JSON.parse(res) as Case[]);
-            setLoading(false);
-        })
-    }, [loading, showModal])
+    if (error) return <div>Beim Abrufen der Fälle ist ein Fehler aufgetreten: {error}</div>
+    if (isLoading) return <Loading />
 
-    if (loading) return <Loading />
-
-    if (cases.length === 0) return (
+    if (data.length === 0) return (
         <>
             <h1 className="text-4xl font-display">Fälle</h1>
             <EmptyCaseList createCase={setShowModal} />
@@ -68,7 +64,7 @@ const CasePage = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-200 bg-white">
-                                    {cases.map((item) => (
+                                    {data.map((item) => (
                                         <tr key={`case-${item.id}`} className="hover:bg-gray-50 cursor-pointer" onClick={() => router.push(`/cases/${item.id}`)}>
                                             <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
                                                 {item.id.toString()}

@@ -3,6 +3,7 @@
     windows_subsystem = "windows"
 )]
 
+mod commands;
 mod data;
 mod events;
 mod models;
@@ -38,14 +39,7 @@ fn main() {
 
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![
-            models::case::get_cases,
-            models::case::get_case,
-            models::case::create_case,
-            models::case::delete_case,
-            models::micrograph::import_micrographs,
-            models::micrograph::get_micrographs
-        ])
+        .invoke_handler(tauri::generate_handler![crate::commands::case::get_cases])
         .plugin(tauri_plugin_window_state::Builder::default().build())
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

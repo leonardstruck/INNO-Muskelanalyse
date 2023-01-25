@@ -11,7 +11,7 @@ export type ImageBrowserProps = {
 }
 
 const ImageBrowser = ({ caseId }: ImageBrowserProps) => {
-    const { data, error, isLoading } = useSWR(`cases/${caseId}/micrographs`, () => fetchMicrographs({ caseId }), {
+    const { data, error, isLoading } = useSWR(`/cases/${caseId}/micrographs`, () => fetchMicrographs({ caseId }), {
         refreshInterval: 1000,
     });
     const { mutate } = useSWRConfig();
