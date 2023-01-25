@@ -7,12 +7,15 @@ license = ""
 repository = ""
 edition = "2021"
 rust-version = "1.57"
-include = ["../resources/**/*"]
+
+# exclude built binaries to prevent cargo to be stuck in a loop
+exclude = ["resources/**/bin/*"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [build-dependencies]
 tauri-build = { version = "1.2", features = [] }
+cargo-emit = "0.2.1"
 cmake = "0.1"
 current_platform = "0.2.0"
 
@@ -29,6 +32,7 @@ chrono = { version = "0.4.23", features = ["serde"] }
 mime_guess = "2.0.3"
 uuid = { version = "1.2.2", features = ["serde", "v4", "fast-rng"] }
 image = "0.24.5"
+libsqlite3-sys = { version = "0.25", features = ["bundled"] }
 
 
 [features]

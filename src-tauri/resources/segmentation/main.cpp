@@ -16,7 +16,6 @@ using namespace cv;
 Mat src, src_gray;
 Mat dst, detected_edges;
 
-
 std::vector<Segment*> segmente;
 
 int averageGreen(Mat image, int rows, int cols)

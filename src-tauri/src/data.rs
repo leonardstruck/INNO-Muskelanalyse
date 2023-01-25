@@ -18,6 +18,11 @@ pub fn get_connection_pool(
         .app_data_dir()
         .expect("Failed to get app data dir");
 
+    // check if app_dir exists and create it if not
+    if !app_dir.exists() {
+        std::fs::create_dir_all(&app_dir).expect("Failed to create app data dir");
+    }
+
     let database_url = app_dir
         .join("database.sqlite")
         .to_str()
@@ -26,9 +31,9 @@ pub fn get_connection_pool(
 
     if cfg!(debug_assertions) {
         // check if DATABASE_URL equals database_url
-        if std::env::var("DATABASE_URL").unwrap_or(String::new()) != database_url {
+        if std::env::var("DATABASE_URL").unwrap_or(String::new()) != database_url.clone().replace("\\", "/") {
             println!("Please update DATABASE_URL in the .env file:");
-            println!("DATABASE_URL=\"{}\"", database_url);
+            println!("DATABASE_URL=\"{}\"", database_url.clone().replace("\\", "/"));
         }
     }
 

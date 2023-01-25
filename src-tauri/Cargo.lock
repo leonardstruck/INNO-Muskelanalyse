@@ -205,6 +205,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "cargo-emit"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1582e1c9e755dd6ad6b224dcffb135d199399a4568d454bd89fe515ca8425695"
+
+[[package]]
 name = "cargo_toml"
 version = "0.13.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1383,6 +1389,7 @@ dependencies = [
 name = "inno-muskelanalyse"
 version = "0.0.0"
 dependencies = [
+ "cargo-emit",
  "chrono",
  "cmake",
  "current_platform",
@@ -1390,6 +1397,7 @@ dependencies = [
  "diesel_migrations",
  "dotenvy",
  "image",
+ "libsqlite3-sys",
  "mime_guess",
  "serde",
  "serde_json",
@@ -1529,6 +1537,7 @@ version = "0.25.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "29f835d03d717946d28b1d1ed632eb6f0e24a299388ee623d0c23118d3e8a7fa"
 dependencies = [
+ "cc",
  "pkg-config",
  "vcpkg",
 ]

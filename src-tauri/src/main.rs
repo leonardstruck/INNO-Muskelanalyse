@@ -15,7 +15,7 @@ use data::PoolState;
 
 fn main() {
     // load .env file
-    dotenv().ok();
+    dotenv().unwrap();
 
     tauri::Builder::default()
         .manage(PoolState)

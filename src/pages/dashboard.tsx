@@ -1,10 +1,10 @@
 import { Command } from "@tauri-apps/api/shell"
 
 async function handleButtonClick() {
-  const command = Command.sidecar("resources/segmentation/bin/segmentation", ["/Users/leonardstruck/Downloads/Input/LORU.png", "/Users/leonardstruck/Downloads/Input/out"]);
+  const command = Command.sidecar("resources/segmentation/bin/segmentation");
   const output = await command.execute();
 
-  console.log(JSON.parse(output.stdout));
+  console.log(output);
 }
 
 function App() {
