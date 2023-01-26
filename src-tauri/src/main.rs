@@ -33,6 +33,7 @@ fn main() {
             crate::commands::case::get_case,
             crate::commands::case::create_case,
             crate::commands::case::delete_case,
+            crate::commands::micrograph::get_micrographs,
         ])
         .plugin(tauri_plugin_window_state::Builder::default().build())
         .run(tauri::generate_context!())
