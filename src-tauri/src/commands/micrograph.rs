@@ -89,8 +89,8 @@ pub async fn import_micrographs(
 
                     // Spawn a thread to move the micrograph
                     tauri::async_runtime::spawn(async move {
-                        crate::tasks::micrograph::move_micrograph(&app_clone, uuid)
-                            .expect("Failed to move micrograph");
+                        crate::tasks::micrograph::move_micrograph(&app_clone, uuid.clone());
+                        crate::tasks::micrograph::generate_thumbnail(&app_clone, uuid);
                     });
 
                     // If a case ID was provided, link the micrograph to the case
