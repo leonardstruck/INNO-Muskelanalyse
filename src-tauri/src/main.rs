@@ -20,7 +20,7 @@ fn main() {
             let app_handle = app.handle();
 
             // get connection pool and store in state
-            let pool = data::get_connection_pool(app_handle.clone());
+            let pool = data::get_connection_pool(app_handle);
             let mut connection = pool.get().unwrap();
             app.manage(PoolState(pool));
 
