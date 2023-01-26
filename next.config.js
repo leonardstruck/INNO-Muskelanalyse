@@ -5,14 +5,6 @@ const nextConfig = {
   swcMinify: true,
   images: {
     unoptimized: true,
-  },
-  async rewrites() {
-    return [
-      {
-        source: '/',
-        destination: '/dashboard'
-      }
-    ]
   }
 };
 

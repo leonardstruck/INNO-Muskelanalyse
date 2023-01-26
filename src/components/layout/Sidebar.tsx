@@ -15,7 +15,7 @@ type NavigationItem = {
 export const navigation: NavigationItem[] = [
     {
         name: 'Dashboard',
-        href: '/dashboard',
+        href: '/',
         icon: HomeIcon,
     },
     {
@@ -24,6 +24,13 @@ export const navigation: NavigationItem[] = [
         icon: BeakerIcon,
     }
 ];
+
+const isActive = (href: string, pathname: string) => {
+    if (href === '/') {
+        return pathname === href;
+    }
+    return pathname.includes(href);
+}
 
 const Sidebar = () => {
     const { asPath, pathname } = useRouter();
@@ -41,13 +48,13 @@ const Sidebar = () => {
                                 key={item.name}
                                 href={item.href}
                                 className={clsx(
-                                    asPath.includes(item.href) ? 'bg-gray-100 text-gray-900' : 'text-gray-600 dark:text-gray-200 hover:bg-gray-50 hover:text-gray-900',
+                                    isActive(item.href, pathname) ? 'bg-gray-100 text-gray-900' : 'text-gray-600 dark:text-gray-200 hover:bg-gray-50 hover:text-gray-900',
                                     'group flex items-center px-2 py-2 text-sm font-medium rounded-md'
                                 )}
                             >
                                 <item.icon
                                     className={clsx(
-                                        asPath.includes(item.href) ? 'text-gray-500' : 'text-gray-400 group-hover:text-gray-500',
+                                        isActive(item.href, pathname) ? 'text-gray-500' : 'text-gray-400 group-hover:text-gray-500',
                                         'mr-3 flex-shrink-0 h-6 w-6'
                                     )}
                                     aria-hidden="true"
