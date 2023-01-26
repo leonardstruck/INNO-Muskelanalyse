@@ -95,7 +95,7 @@ pub async fn import_micrographs(
                 Ok(_) => {
                     let uuid = new_micrograph.uuid.clone();
 
-                    // Spawn a thread to move the micrograph
+                    // Spawn a thread to process the micrograph
                     tauri::async_runtime::spawn(async move {
                         crate::tasks::micrograph::move_micrograph(&app_clone, uuid.clone());
                         crate::tasks::micrograph::generate_thumbnail(&app_clone, uuid);

@@ -116,6 +116,7 @@ pub fn generate_thumbnail(app: &tauri::AppHandle, micrograph_id: String) {
         .set((
             dsl::thumbnail_path.eq(thumbnail_path.to_str().unwrap()),
             dsl::updated_at.eq(chrono::Utc::now().naive_utc()),
+            dsl::status.eq("imported"),
         ))
         .execute(&mut get_connection(state).unwrap())
         .unwrap();
