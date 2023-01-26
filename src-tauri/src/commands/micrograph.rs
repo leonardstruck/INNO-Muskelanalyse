@@ -47,3 +47,82 @@ pub async fn get_micrographs(
         Err(e) => Err("Error loading micrographs: ".to_string() + &e.to_string()),
     }
 }
+
+#[tauri::command]
+pub async fn import_micrographs(
+    app: tauri::AppHandle,
+    state: tauri::State<'_, PoolState>,
+    case_id: Option<i32>,
+    micrograph_paths: Vec<String>,
+) -> Result<String, String> {
+    extern crate futures;
+    use futures::future;
+
+    let result = future::try_join_all(micrograph_paths.into_iter().map(|path| {
+        let state = state.clone();
+        let app_clone = app.clone();
+        async move {
+            use crate::models::micrograph::NewMicrograph;
+            use crate::schema::micrographs::dsl;
+
+            let file_name = path.split("/").last().unwrap().to_string();
+
+            let new_micrograph = NewMicrograph {
+                uuid: uuid::Uuid::new_v4().to_string(),
+                import_path: path.clone(),
+                name: file_name,
+                status: "new".to_string(),
+
+                file_size: None,
+                file_type: None,
+                path: None,
+                thumbnail_path: None,
+            };
+
+            let inserted_micrograph = diesel::insert_into(dsl::micrographs)
+                .values(&new_micrograph)
+                .execute(&mut get_connection(state.clone()).unwrap());
+
+            match inserted_micrograph {
+                Ok(_) => {
+                    let uuid = new_micrograph.uuid.clone();
+
+                    // Spawn a thread to move the micrograph
+                    tauri::async_runtime::spawn(async move {
+                        crate::tasks::micrograph::move_micrograph(&app_clone, uuid)
+                            .expect("Failed to move micrograph");
+                    });
+
+                    // If a case ID was provided, link the micrograph to the case
+                    if let Some(case_id) = case_id {
+                        use crate::models::micrograph::NewCaseMicrograph;
+                        use crate::schema::case_micrographs::dsl as cmdsl;
+
+                        let new_case_micrograph = NewCaseMicrograph {
+                            case_id,
+                            micrograph_id: new_micrograph.uuid.clone(),
+                        };
+
+                        let inserted_case_micrograph = diesel::insert_into(cmdsl::case_micrographs)
+                            .values(&new_case_micrograph)
+                            .execute(&mut get_connection(state.clone()).unwrap());
+
+                        match inserted_case_micrograph {
+                            Ok(_) => Ok(()),
+                            Err(e) => Err(e),
+                        }
+                    } else {
+                        Ok(())
+                    }
+                }
+                Err(e) => Err(e),
+            }
+        }
+    }))
+    .await;
+
+    match result {
+        Ok(_) => Ok("Successfully imported micrographs".to_string()),
+        Err(e) => Err("Error loading micrographs: ".to_string() + &e.to_string()),
+    }
+}

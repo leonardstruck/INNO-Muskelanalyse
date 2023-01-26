@@ -23,10 +23,10 @@ diesel::table! {
         uuid -> Text,
         name -> Text,
         path -> Nullable<Text>,
-        import_path -> Nullable<Text>,
+        import_path -> Text,
         thumbnail_path -> Nullable<Text>,
-        file_size -> Integer,
-        file_type -> Text,
+        file_size -> Nullable<Integer>,
+        file_type -> Nullable<Text>,
         status -> Text,
         created_at -> Timestamp,
         updated_at -> Timestamp,
@@ -34,6 +34,7 @@ diesel::table! {
 }
 
 diesel::joinable!(case_micrographs -> cases (case_id));
+diesel::joinable!(case_micrographs -> micrographs (micrograph_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
     case_micrographs,

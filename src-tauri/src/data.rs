@@ -1,6 +1,7 @@
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations");
 
+#[derive(Debug)]
 pub struct PoolState(pub Pool<ConnectionManager<SqliteConnection>>);
 
 pub fn run_migrations(connection: &mut diesel::sqlite::SqliteConnection) {

@@ -24,7 +24,7 @@ const ImageCard = ({ image }: ImageCardProps) => {
                 </button>
             </div>
             <p className="pointer-events-none mt-2 block truncate text-sm font-medium text-gray-900">{image.name}</p>
-            <p className="pointer-events-none block text-sm font-medium text-gray-500">{prettyBytes(image.file_size)}</p>
+            <p className="pointer-events-none block text-sm font-medium text-gray-500">{image.file_size ? prettyBytes(image.file_size) : "wird importiert..."}</p>
         </li>
     );
 }

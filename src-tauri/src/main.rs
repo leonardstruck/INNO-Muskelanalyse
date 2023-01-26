@@ -5,9 +5,9 @@
 
 mod commands;
 mod data;
-mod events;
 mod models;
 mod schema;
+mod tasks;
 
 use tauri::Manager;
 
@@ -24,6 +24,7 @@ fn main() {
             let mut connection = pool.get().unwrap();
             app.manage(PoolState(pool));
 
+            // run migrations
             data::run_migrations(&mut connection);
 
             Ok(())
@@ -34,6 +35,7 @@ fn main() {
             crate::commands::case::create_case,
             crate::commands::case::delete_case,
             crate::commands::micrograph::get_micrographs,
+            crate::commands::micrograph::import_micrographs,
         ])
         .plugin(tauri_plugin_window_state::Builder::default().build())
         .run(tauri::generate_context!())

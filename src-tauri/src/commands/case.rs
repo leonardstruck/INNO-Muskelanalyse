@@ -41,13 +41,11 @@ pub async fn create_case(
     use crate::models::case::NewCase;
     use crate::schema::cases::dsl;
 
-    let mut connection = get_connection(state).unwrap();
-
     let new_case: NewCase = serde_json::from_str(&case).unwrap();
 
     let results = diesel::insert_into(dsl::cases)
         .values(&new_case)
-        .execute(&mut connection);
+        .execute(&mut get_connection(state).unwrap());
 
     match results {
         Ok(results) => Ok(serde_json::to_string(&results).unwrap()),
@@ -59,9 +57,8 @@ pub async fn create_case(
 pub async fn delete_case(state: tauri::State<'_, PoolState>, id: i32) -> Result<String, String> {
     use crate::schema::cases::dsl;
 
-    let mut connection = get_connection(state).unwrap();
-
-    let results = diesel::delete(dsl::cases.filter(dsl::id.eq(id))).execute(&mut connection);
+    let results = diesel::delete(dsl::cases.filter(dsl::id.eq(id)))
+        .execute(&mut get_connection(state).unwrap());
 
     match results {
         Ok(results) => Ok(serde_json::to_string(&results).unwrap()),

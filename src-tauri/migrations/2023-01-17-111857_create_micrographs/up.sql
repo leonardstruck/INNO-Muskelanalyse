@@ -3,10 +3,10 @@ CREATE TABLE micrographs (
   uuid TEXT PRIMARY KEY NOT NULL,
   name TEXT NOT NULL,
   path TEXT,
-  import_path TEXT,
+  import_path TEXT NOT NULL,
   thumbnail_path TEXT,
-  file_size INTEGER NOT NULL,
-  file_type TEXT NOT NULL,
+  file_size INTEGER,
+  file_type TEXT,
 
   status TEXT CHECK (status IN ('new', 'imported', 'segmented', 'error', 'ok')) NOT NULL DEFAULT 'new',
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
