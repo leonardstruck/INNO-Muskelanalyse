@@ -65,7 +65,15 @@ pub async fn import_micrographs(
             use crate::models::micrograph::NewMicrograph;
             use crate::schema::micrographs::dsl;
 
-            let file_name = path.split("/").last().unwrap().to_string();
+            // get the file name from the path (use / and \ as separators to support both unix and windows)
+            let file_name = path
+                .split("/")
+                .last()
+                .unwrap()
+                .split("\\")
+                .last()
+                .unwrap()
+                .to_string();
 
             let new_micrograph = NewMicrograph {
                 uuid: uuid::Uuid::new_v4().to_string(),
