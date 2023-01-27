@@ -20,6 +20,7 @@ pub struct Segment {
     pub measured_width: Option<f32>,
     pub measured_angle: Option<f32>,
     pub micrograph_id: String,
+    pub status: String,
 }
 
 #[derive(Insertable, Deserialize)]
@@ -35,4 +36,14 @@ pub struct NewSegment {
     pub measured_width: Option<f32>,
     pub measured_angle: Option<f32>,
     pub micrograph_id: String,
+    pub status: String,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct SegmentationResponse {
+    pub path: String,
+    pub y: i32,
+    pub x: i32,
+    pub height: i32,
+    pub width: i32,
 }

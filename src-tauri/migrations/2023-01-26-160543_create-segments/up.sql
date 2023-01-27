@@ -12,5 +12,8 @@ CREATE TABLE segments (
     measured_width FLOAT,
     measured_angle FLOAT,
     micrograph_id TEXT NOT NULL,
+    status TEXT CHECK (
+        status IN ('new', 'verified', 'error', 'ok')
+    ) NOT NULL DEFAULT 'new',
     FOREIGN KEY (micrograph_id) REFERENCES micrographs(uuid) ON DELETE CASCADE
 );

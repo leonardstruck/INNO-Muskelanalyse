@@ -47,6 +47,7 @@ diesel::table! {
         measured_width -> Nullable<Float>,
         measured_angle -> Nullable<Float>,
         micrograph_id -> Text,
+        status -> Text,
     }
 }
 

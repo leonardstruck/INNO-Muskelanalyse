@@ -6,16 +6,15 @@ pub async fn get_micrographs(
     state: tauri::State<'_, PoolState>,
     case_id: Option<i32>,
 ) -> Result<String, String> {
-    let mut connection = get_connection(state).unwrap();
-
     let results = match case_id {
         Some(case_id) => {
             use crate::models::micrograph::CaseMicrograph;
             use crate::schema::case_micrographs::dsl as cmdsl;
 
-            let linked_micrographs = cmdsl::case_micrographs
-                .filter(cmdsl::case_id.eq(case_id))
-                .load::<CaseMicrograph>(&mut connection);
+            let linked_micrographs =
+                cmdsl::case_micrographs
+                    .filter(cmdsl::case_id.eq(case_id))
+                    .load::<CaseMicrograph>(&mut get_connection(state.clone()).unwrap());
 
             match linked_micrographs {
                 Ok(linked_micrographs) => {
@@ -29,7 +28,7 @@ pub async fn get_micrographs(
 
                     dsl::micrographs
                         .filter(dsl::uuid.eq_any(micrograph_ids))
-                        .load::<Micrograph>(&mut connection)
+                        .load::<Micrograph>(&mut get_connection(state.clone()).unwrap())
                 }
                 Err(e) => Err(e),
             }
@@ -38,7 +37,7 @@ pub async fn get_micrographs(
             use crate::models::micrograph::Micrograph;
             use crate::schema::micrographs::dsl;
 
-            dsl::micrographs.load::<Micrograph>(&mut connection)
+            dsl::micrographs.load::<Micrograph>(&mut get_connection(state).unwrap())
         }
     };
 
@@ -98,7 +97,9 @@ pub async fn import_micrographs(
                     // Spawn a thread to process the micrograph
                     tauri::async_runtime::spawn(async move {
                         crate::tasks::micrograph::move_micrograph(&app_clone, uuid.clone());
-                        crate::tasks::micrograph::generate_thumbnail(&app_clone, uuid);
+                        crate::tasks::micrograph::generate_thumbnail(&app_clone, uuid.clone());
+                        crate::tasks::micrograph::segment_micrograph(&app_clone.clone(), uuid)
+                            .await;
                     });
 
                     // If a case ID was provided, link the micrograph to the case
