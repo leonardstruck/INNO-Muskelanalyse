@@ -48,6 +48,24 @@ pub async fn get_micrographs(
 }
 
 #[tauri::command]
+pub async fn get_micrograph(
+    state: tauri::State<'_, PoolState>,
+    micrograph_id: String,
+) -> Result<String, String> {
+    use crate::models::micrograph::Micrograph;
+    use crate::schema::micrographs::dsl;
+
+    let results = dsl::micrographs
+        .filter(dsl::uuid.eq(micrograph_id))
+        .load::<Micrograph>(&mut get_connection(state).unwrap());
+
+    match results {
+        Ok(results) => Ok(serde_json::to_string(&results.first()).unwrap()),
+        Err(e) => Err("Error loading micrographs: ".to_string() + &e.to_string()),
+    }
+}
+
+#[tauri::command]
 pub async fn import_micrographs(
     app: tauri::AppHandle,
     state: tauri::State<'_, PoolState>,
@@ -82,6 +100,8 @@ pub async fn import_micrographs(
 
                 file_size: None,
                 file_type: None,
+                width: None,
+                height: None,
                 path: None,
                 thumbnail_path: None,
             };

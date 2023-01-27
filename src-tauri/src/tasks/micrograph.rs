@@ -76,7 +76,7 @@ pub fn generate_thumbnail(app: &tauri::AppHandle, micrograph_id: String) {
         .join(micrograph.uuid.to_string())
         .join("thumbnail.png");
 
-    let file = std::fs::File::open(&micrograph.path.unwrap()).unwrap();
+    let file = std::fs::File::open(&micrograph.path.clone().unwrap()).unwrap();
     let reader = std::io::BufReader::new(file);
 
     let mut image_reader = image::io::Reader::new(reader)
@@ -86,6 +86,11 @@ pub fn generate_thumbnail(app: &tauri::AppHandle, micrograph_id: String) {
     image_reader.no_limits();
 
     let image = image_reader.decode().expect("Failed to decode micrograph");
+
+    // guess mime type of micrograph
+    let mime_type = mime_guess::from_path(&micrograph.path.unwrap())
+        .first()
+        .unwrap();
 
     // get aspect ratio of micrograph
     let aspect_ratio = image.width() as f32 / image.height() as f32;
@@ -116,6 +121,9 @@ pub fn generate_thumbnail(app: &tauri::AppHandle, micrograph_id: String) {
         .set((
             dsl::thumbnail_path.eq(thumbnail_path.to_str().unwrap()),
             dsl::updated_at.eq(chrono::Utc::now().naive_utc()),
+            dsl::width.eq(image.width() as i32),
+            dsl::height.eq(image.height() as i32),
+            dsl::file_type.eq(mime_type.to_string()),
             dsl::status.eq("imported"),
         ))
         .execute(&mut get_connection(state).unwrap())

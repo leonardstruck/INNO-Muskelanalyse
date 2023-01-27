@@ -27,6 +27,8 @@ diesel::table! {
         thumbnail_path -> Nullable<Text>,
         file_size -> Nullable<Integer>,
         file_type -> Nullable<Text>,
+        width -> Nullable<Integer>,
+        height -> Nullable<Integer>,
         status -> Text,
         created_at -> Timestamp,
         updated_at -> Timestamp,

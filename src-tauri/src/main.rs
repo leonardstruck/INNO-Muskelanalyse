@@ -35,6 +35,7 @@ fn main() {
             crate::commands::case::create_case,
             crate::commands::case::delete_case,
             crate::commands::micrograph::get_micrographs,
+            crate::commands::micrograph::get_micrograph,
             crate::commands::micrograph::import_micrographs,
             crate::commands::segment::get_segments,
         ])

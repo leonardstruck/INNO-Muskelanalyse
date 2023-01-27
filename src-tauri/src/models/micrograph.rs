@@ -18,6 +18,8 @@ pub struct Micrograph {
     pub thumbnail_path: Option<String>,
     pub file_size: Option<i32>,
     pub file_type: Option<String>,
+    pub width: Option<i32>,
+    pub height: Option<i32>,
     pub status: String,
     pub created_at: chrono::NaiveDateTime,
     pub updated_at: chrono::NaiveDateTime,
@@ -33,6 +35,8 @@ pub struct NewMicrograph {
     pub thumbnail_path: Option<String>,
     pub file_size: Option<i32>,
     pub file_type: Option<String>,
+    pub width: Option<i32>,
+    pub height: Option<i32>,
     pub status: String,
 }
 
