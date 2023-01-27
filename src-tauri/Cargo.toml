@@ -8,8 +8,7 @@ repository = ""
 edition = "2021"
 rust-version = "1.57"
 
-# exclude built binaries to prevent cargo to be stuck in a loop
-exclude = ["resources/**/bin/*"]
+exclude = ["**/bin/"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

@@ -60,7 +60,13 @@ pub async fn get_micrograph(
         .load::<Micrograph>(&mut get_connection(state).unwrap());
 
     match results {
-        Ok(results) => Ok(serde_json::to_string(&results.first()).unwrap()),
+        Ok(results) => {
+            // check if micrograph exists
+            if results.len() == 0 {
+                return Err("Micrograph not found".to_string());
+            }
+            Ok(serde_json::to_string(&results.first()).unwrap())
+        }
         Err(e) => Err("Error loading micrographs: ".to_string() + &e.to_string()),
     }
 }
@@ -104,6 +110,7 @@ pub async fn import_micrographs(
                 height: None,
                 path: None,
                 thumbnail_path: None,
+                display_path: None,
             };
 
             let inserted_micrograph = diesel::insert_into(dsl::micrographs)

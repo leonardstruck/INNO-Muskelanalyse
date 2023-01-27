@@ -116,10 +116,42 @@ pub fn generate_thumbnail(app: &tauri::AppHandle, micrograph_id: String) {
         .save_with_format(&thumbnail_path, image::ImageFormat::Png)
         .expect("Failed to save thumbnail");
 
+    // create display image path
+    let display_path = app
+        .path_resolver()
+        .app_data_dir()
+        .expect("Failed to get app data dir")
+        .join("micrographs")
+        .join(micrograph.uuid.to_string())
+        .join("display.png");
+
+    // calculate display image size
+    let desired_size = 2048;
+    let display_size = if aspect_ratio > 1.0 {
+        (desired_size, (desired_size as f32 / aspect_ratio) as u32)
+    } else {
+        (((desired_size as f32 * aspect_ratio) as u32), desired_size)
+    };
+
+    // create display image
+    let display_image = image
+        .resize(
+            display_size.0,
+            display_size.1,
+            image::imageops::FilterType::Lanczos3,
+        )
+        .to_rgb16();
+
+    // save display image
+    display_image
+        .save_with_format(&display_path, image::ImageFormat::Png)
+        .expect("Failed to save display image");
+
     // update micrograph in database
     diesel::update(dsl::micrographs.find(micrograph.uuid))
         .set((
             dsl::thumbnail_path.eq(thumbnail_path.to_str().unwrap()),
+            dsl::display_path.eq(display_path.to_str().unwrap()),
             dsl::updated_at.eq(chrono::Utc::now().naive_utc()),
             dsl::width.eq(image.width() as i32),
             dsl::height.eq(image.height() as i32),

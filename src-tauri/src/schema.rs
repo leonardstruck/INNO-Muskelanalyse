@@ -25,6 +25,7 @@ diesel::table! {
         path -> Nullable<Text>,
         import_path -> Text,
         thumbnail_path -> Nullable<Text>,
+        display_path -> Nullable<Text>,
         file_size -> Nullable<Integer>,
         file_type -> Nullable<Text>,
         width -> Nullable<Integer>,

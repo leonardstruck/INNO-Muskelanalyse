@@ -6,12 +6,13 @@ import { invoke } from '@tauri-apps/api/tauri';
 import type { Micrograph } from '../../../src-tauri/bindings/Micrograph';
 import type { Segment } from "../../../src-tauri/bindings/Segment";
 import Loading from '../../components/layout/Loading';
+import { ProgressBar } from '@tremor/react';
 
 const MicrographPage = () => {
     const router = useRouter();
     const { id } = router.query;
 
-    const { data: micrograph, error: micrographError, isLoading: micrographIsLoading } = useSWR(`/micrographs/${id}`, () => micrographFetcher(`${id}`), {
+    const { data: micrograph, error: micrographError, isLoading: micrographIsLoading } = useSWR(`/micrographs/${id}`, () => micrographFetcher(String(id)), {
         refreshInterval(latestData) {
             // Refresh every second if the status is "new"
             if (latestData?.status === "new") return 1000;
@@ -19,13 +20,20 @@ const MicrographPage = () => {
         },
     });
 
-    const { data: segments, error: segmentsError, isLoading: segmentsIsLoading } = useSWR(`/micrographs/${id}/segments`, () => segmentsFetcher(`${id}`), {
+    const { data: segments, error: segmentsError, isLoading: segmentsIsLoading } = useSWR(`/micrographs/${id}/segments`, () => segmentsFetcher(String(id)), {
         refreshInterval(latestData) {
             // Refresh every second if no segments are available
             if (latestData && latestData.length == 0) return 1000;
+            // Refresh every second if not all segments are processed
+            if (latestData && countProcessed(latestData) < latestData.length) return 1000;
             return 0;
         },
     });
+
+    // count the number of segments that have status ok
+    const processedSegments = segments && countProcessed(segments);
+
+    const processedPercentage = processedSegments && segments ? processedSegments / segments.length * 100 : 0;
 
     if (micrographError) return <div>Es ist ein Fehler aufgetreten: {micrographError}</div>
     if (micrographIsLoading) return <Loading />
@@ -41,21 +49,34 @@ const MicrographPage = () => {
             {micrograph && (
                 <div className="bg-white shadow sm:rounded-lg p-4 space-y-4">
                     <h3 className="text-lg font-medium leading-6 text-gray-900">Mikroskopaufnahme</h3>
-                    <ImageViewer micrograph={micrograph} />
+                    <ImageViewer micrograph={micrograph} segments={segments} />
                 </div>
             )}
-            {segments && (
+            {micrograph.status !== "new" && segments && segments.length > 0 && (
                 <div className="bg-white shadow sm:rounded-lg p-4 space-y-4">
-                    <h3 className="text-lg font-medium leading-6 text-gray-900">Segmente</h3>
+                    <h3 className="text-lg font-medium leading-6 text-gray-900">Analyse</h3>
 
-                    <p>Es wurden {segments.length} Segmente gefunden.</p>
-
+                    {processedSegments !== segments.length && <ProgressBar showAnimation percentageValue={processedPercentage} label={`${processedSegments}/${segments.length}`} />}
                 </div>
             )}
         </div>
     );
 }
 
-const micrographFetcher = (id: string) => invoke("get_micrograph", { micrographId: id }).then((res: string) => JSON.parse(res) as Micrograph);
-const segmentsFetcher = (id: string) => invoke("get_segments", { micrographId: id }).then((res: string) => JSON.parse(res) as Segment[]);
-export default MicrographPage
+const micrographFetcher = (id: string) => {
+    if (!id) return Promise.reject("No id provided");
+    return invoke("get_micrograph", { micrographId: id }).then((res: string) => JSON.parse(res) as Micrograph);
+};
+const segmentsFetcher = (id: string) => {
+    if (!id) return Promise.reject("No id provided");
+    return invoke("get_segments", { micrographId: id }).then((res: string) => JSON.parse(res) as Segment[])
+};
+
+const countProcessed = (segments: Segment[]) => {
+    return segments.reduce((acc, segment) => {
+        if (segment.status === "ok") return acc + 1;
+        return acc;
+    }, 0);
+}
+
+export default MicrographPage;

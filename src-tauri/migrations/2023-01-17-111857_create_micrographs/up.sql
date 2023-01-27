@@ -5,6 +5,7 @@ CREATE TABLE micrographs (
   path TEXT,
   import_path TEXT NOT NULL,
   thumbnail_path TEXT,
+  display_path TEXT,
   file_size INTEGER,
   file_type TEXT,
   width INTEGER,
