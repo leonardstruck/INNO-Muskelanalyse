@@ -65,7 +65,7 @@ const ImageViewer = ({ micrograph, segments }: ImageViewerProps) => {
             {micrograph && micrograph.display_path && micrograph.width && micrograph.height && (
                 <div className="bg-gray-900 relative">
                     {hoveredSegment && (
-                        <div className="absolute rounded rounded-md m-4 z-10 w-52  bg-neutral-300 bg-opacity-80 backdrop-blur-sm overflow-hidden shadow-xl" style={{ left: overlayPosition.left, right: overlayPosition.right, top: overlayPosition.top, bottom: overlayPosition.bottom }}>
+                        <div className="absolute rounded-md m-4 z-10 w-52  bg-neutral-300 bg-opacity-80 backdrop-blur-sm overflow-hidden shadow-xl" style={{ left: overlayPosition.left, right: overlayPosition.right, top: overlayPosition.top, bottom: overlayPosition.bottom }}>
                             <SegmentDetails segment={hoveredSegment} />
                         </div>
                     )}
