@@ -22,6 +22,19 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf
+      - name: install python and install dependencies
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - name: install python dependencies
+        run: pip install -r src-tauri/resources/analysis/requirements.txt
+      - name: install pyinstaller
+        run: pip install pyinstaller
+      - name: install opencv
+        uses: Dovyski/setup-opencv-action@v1.1
+        with:
+          opencv-version: '4.7.0'
       - name: install app dependencies and build it
         run: yarn && yarn build
       - uses: tauri-apps/tauri-action@v0
