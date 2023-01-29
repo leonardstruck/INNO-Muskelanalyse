@@ -17,6 +17,10 @@ jobs:
           node-version: 16
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
       - name: install dependencies (ubuntu only)
         if: matrix.platform == 'ubuntu-20.04'
         run: |
@@ -42,7 +46,7 @@ jobs:
       - name: install opencv (windows only)
         if: matrix.platform == 'windows-latest'
         run: |
-          choco install opencv
+          choco install opencv --params "/InstallDir:C:\OpenCV /Environment:C:\OpenCV"
       - name: install app dependencies and build it
         run: yarn && yarn build
       - uses: tauri-apps/tauri-action@v0
