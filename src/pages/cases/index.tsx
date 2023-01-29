@@ -8,7 +8,7 @@ import clsx from "clsx"
 import EmptyCaseList from "../../components/cases/EmptyCaseList"
 import useSWR from "swr"
 
-const fetcher = () => invoke("get_cases").then((res: string) => JSON.parse(res) as Case[]);
+const fetcher = () => invoke("get_cases").then((res) => JSON.parse(res as string) as Case[]);
 
 const CasePage = () => {
     const router = useRouter();
@@ -17,10 +17,10 @@ const CasePage = () => {
 
     const [showModal, setShowModal] = useState(false);
 
-    if (error) return <div>Beim Abrufen der Fälle ist ein Fehler aufgetreten: {error}</div>
     if (isLoading) return <Loading />
+    if (error || !data) return <div>Beim Abrufen der Fälle ist ein Fehler aufgetreten: {error}</div>
 
-    if (data.length === 0) return (
+    if (data && data.length === 0) return (
         <>
             <h1 className="text-4xl font-display">Fälle</h1>
             <EmptyCaseList createCase={setShowModal} />

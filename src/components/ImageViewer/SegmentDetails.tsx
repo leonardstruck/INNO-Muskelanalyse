@@ -8,15 +8,14 @@ import type { Segment } from '../../../src-tauri/bindings/Segment';
 import { ArrowUpIcon } from '@heroicons/react/24/outline';
 
 export type SegmentDetailsProps = {
-    segment?: Segment;
+    segment: Segment;
 };
 
 const SegmentDetails = ({ segment }: SegmentDetailsProps) => {
-    if (!segment) return null;
-
     const { data: image, error, isLoading } = useSWR(
         `/api/segments/${segment.uuid}/image`,
         () => fetcher(segment));
+
 
     if (error) return <div>Beim Laden ist ein Fehler aufgetreten: {error}</div>
     if (isLoading) return <Loading />

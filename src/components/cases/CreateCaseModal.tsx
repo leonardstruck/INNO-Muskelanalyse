@@ -16,7 +16,7 @@ type CreateCaseModalProps = {
     modalOpen: boolean;
 }
 
-async function createCase(key, { arg }: { arg: Pick<Case, "name" | "description"> }) {
+async function createCase(key: string, { arg }: { arg: Pick<Case, "name" | "description"> }) {
     await invoke("create_case", { case: JSON.stringify(arg) });
 };
 

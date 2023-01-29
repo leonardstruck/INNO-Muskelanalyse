@@ -13,7 +13,7 @@ type ImageCardProps = {
 
 const ImageCard = ({ image }: ImageCardProps) => {
     const router = useRouter();
-    const [imagePath, setImagePath] = useState<string>(undefined);
+    const [imagePath, setImagePath] = useState<string | undefined>(undefined);
     useEffect(() => {
         if (image.thumbnail_path) {
             setImagePath(convertFileSrc(image.thumbnail_path));
@@ -22,7 +22,7 @@ const ImageCard = ({ image }: ImageCardProps) => {
     return (
         <li key={image.uuid} className="relative">
             <div className={clsx(imagePath == undefined && "animate-pulse", "group aspect-w-10 aspect-h-7 block w-full overflow-hidden rounded-lg bg-gray-300 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-gray-100")}>
-                <Image alt="" className="pointer-events-none object-cover group-hover:opacity-75" src={imagePath} fill />
+                {imagePath && <Image alt="" className="pointer-events-none object-cover group-hover:opacity-75" src={imagePath} fill />}
                 <button type="button" className="absolute inset-0 focus:outline-none" onClick={() => router.push(`/micrographs/${image.uuid}`)}>
                     <span className="sr-only">View details for {image.name}</span>
                 </button>

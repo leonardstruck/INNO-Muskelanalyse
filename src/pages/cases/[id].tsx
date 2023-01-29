@@ -10,8 +10,8 @@ import useSWR from "swr";
 import useSWRMutation from "swr/mutation";
 
 
-const fetcher = (id: number) => invoke("get_case", { id }).then((res: string) => JSON.parse(res) as Case);
-const deleteCase = async (url, { arg }: { arg: number }) => { await invoke("delete_case", { id: arg }) };
+const fetcher = (id: number) => invoke("get_case", { id }).then((res) => JSON.parse(res as string) as Case);
+const deleteCase = async (url: string, { arg }: { arg: number }) => { await invoke("delete_case", { id: arg }) };
 
 const CasePage = () => {
     const router = useRouter();
@@ -26,7 +26,7 @@ const CasePage = () => {
 
     const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-    if (error) return <div>Failed to load</div>
+    if (error || !data) return <div>Failed to load</div>
     if (isLoading) return <Loading />
 
     return (

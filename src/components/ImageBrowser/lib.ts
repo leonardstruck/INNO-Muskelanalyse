@@ -5,7 +5,7 @@ type HandleImportProps = {
     caseId?: number;
 };
 
-const handleImport = async (url, { arg }: { arg: HandleImportProps }) => {
+const handleImport = async (url: string, { arg }: { arg: HandleImportProps }) => {
     const { caseId } = arg;
 
     const open = (await import("@tauri-apps/api/dialog")).open;
@@ -35,7 +35,7 @@ type FetchMicrographsProps = {
 };
 
 const fetchMicrographs = ({ caseId }: FetchMicrographsProps): Promise<Micrograph[]> => {
-    return invoke("get_micrographs", { caseId }).then((response: string) => JSON.parse(response) as Micrograph[]);
+    return invoke("get_micrographs", { caseId }).then((response) => JSON.parse(response as string) as Micrograph[]);
 }
 
 
