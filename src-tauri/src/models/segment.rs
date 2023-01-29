@@ -11,7 +11,7 @@ pub struct Segment {
     pub uuid: String,
     pub created_at: chrono::NaiveDateTime,
     pub updated_at: chrono::NaiveDateTime,
-    pub path: String,
+    pub filename: String,
     pub location_x: Option<i32>,
     pub location_y: Option<i32>,
     pub height: Option<i32>,
@@ -27,7 +27,7 @@ pub struct Segment {
 #[diesel(table_name = segments)]
 pub struct NewSegment {
     pub uuid: String,
-    pub path: String,
+    pub filename: String,
     pub location_x: Option<i32>,
     pub location_y: Option<i32>,
     pub height: Option<i32>,
@@ -46,4 +46,13 @@ pub struct SegmentationResponse {
     pub x: i32,
     pub height: i32,
     pub width: i32,
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct AnalysisResponse {
+    pub path: String,
+    pub direction_a: f32,
+    pub direction_b: f32,
+    pub angle: f32,
 }

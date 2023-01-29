@@ -3,7 +3,7 @@ CREATE TABLE segments (
     uuid TEXT PRIMARY KEY NOT NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    path TEXT NOT NULL,
+    filename TEXT NOT NULL,
     location_x INTEGER,
     location_y INTEGER,
     height INTEGER,

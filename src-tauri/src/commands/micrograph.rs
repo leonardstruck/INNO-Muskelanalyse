@@ -125,7 +125,9 @@ pub async fn import_micrographs(
                     tauri::async_runtime::spawn(async move {
                         crate::tasks::micrograph::move_micrograph(&app_clone, uuid.clone());
                         crate::tasks::micrograph::generate_thumbnail(&app_clone, uuid.clone());
-                        crate::tasks::micrograph::segment_micrograph(&app_clone.clone(), uuid)
+                        crate::tasks::segment::segment_micrograph(&app_clone.clone(), uuid.clone())
+                            .await;
+                        crate::tasks::segment::analyze_segments(&app_clone.clone(), uuid.clone())
                             .await;
                     });
 

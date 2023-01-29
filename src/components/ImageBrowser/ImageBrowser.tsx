@@ -22,6 +22,9 @@ const ImageBrowser = ({ caseId }: ImageBrowserProps) => {
     if (isLoading) return <Loading />
 
     if (error) return <div>Beim Abrufen der Aufnahmen ist ein Fehler aufgetreten: {error}</div>
+
+    if (!data) return <div>Keine Aufnahmen gefunden</div>
+
     if (data.length == 0) return <Empty onImport={() => trigger({ caseId })} />
 
     return (

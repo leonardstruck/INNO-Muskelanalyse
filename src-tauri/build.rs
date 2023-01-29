@@ -26,6 +26,8 @@ fn build_segmentation_script() {
 fn build_analysis_script() {
     use std::process::Command;
 
+    cargo_emit::rerun_if_changed!("resources/analysis/analysis.py");
+
     let analysis_path = std::env::current_dir()
         .unwrap()
         .join("resources")
@@ -53,9 +55,6 @@ fn build_analysis_script() {
             String::from_utf8_lossy(&output.stderr)
         );
     }
-
-    // print output of command
-    cargo_emit::warning!("{}", String::from_utf8_lossy(&output.stdout));
 
     move_binary(analysis_path.join("bin").to_str().unwrap(), "analysis");
 }
@@ -93,6 +92,6 @@ fn move_binary(out_dir: &str, target_name: &str) {
     // delete target file if it exists
     std::fs::remove_file(&target_path).unwrap_or(());
 
-    // copy binary to target path
-    std::fs::copy(original_path, target_path).unwrap();
+    // move binary to target path
+    std::fs::rename(original_path, target_path).unwrap();
 }

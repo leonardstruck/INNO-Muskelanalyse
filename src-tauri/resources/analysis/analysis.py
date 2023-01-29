@@ -160,7 +160,7 @@ def boxTest(arg):
             "directionB": round(dB, 2),
             "angle": round(angle, 2)
         }
-        return json.dumps(value)
+        return value;
 
 
 def checkFragmentsFromFolder():
@@ -202,16 +202,16 @@ def checkFragmentsFromArguments():
 
 def checkFragmentsFromDirectory(directory):
     os.chdir(directory)
-    print(directory)
+    #print(directory)
     jsons = []
     for file in os.listdir(directory):
         if os.path.isdir(file):
             continue
-        print()
-        print("file: ", file)
+        #print()
+        #print("file: ", file)
         img = cv2.imread(file)
         if img is not None:
-            print("boxTest: ")
+            #print("boxTest: ")
             try:
                 jsons.append(boxTest(file))
             except Exception as e:
@@ -224,7 +224,7 @@ def checkFragmentsFromDirectory(directory):
 
 def main():
     if len(sys.argv) > 1:
-        print("Arguments found", str(sys.argv))
+        # print("Arguments found", str(sys.argv))
         if sys.argv[1] == "-d":
             return checkFragmentsFromDirectory(sys.argv[2])
         else:
@@ -233,6 +233,7 @@ def main():
         return checkFragmentsFromFolder()
         print("No fragments folder found")
         raise Exception("No arguments given")
+    
 
 
 try:

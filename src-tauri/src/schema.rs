@@ -41,7 +41,7 @@ diesel::table! {
         uuid -> Text,
         created_at -> Timestamp,
         updated_at -> Timestamp,
-        path -> Text,
+        filename -> Text,
         location_x -> Nullable<Integer>,
         location_y -> Nullable<Integer>,
         height -> Nullable<Integer>,
