@@ -46,7 +46,7 @@ jobs:
       - name: install opencv (windows only)
         if: matrix.platform == 'windows-latest'
         run: |
-          choco install opencv --params "/InstallDir:C:\OpenCV /Environment:C:\OpenCV"
+          choco install opencv --params "/InstallationPath:C:\OpenCV /Environment:C:\OpenCV"
       - name: install app dependencies and build it
         run: yarn && yarn build
       - uses: tauri-apps/tauri-action@v0
