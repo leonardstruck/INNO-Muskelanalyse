@@ -27,12 +27,17 @@ pub async fn segment_micrograph(app: &tauri::AppHandle, micrograph_id: String) {
 
     std::fs::create_dir_all(&segment_dir).expect("Failed to create segment dir");
 
+    // create segmentation path but replace backslashes (windows) with forward slashes
+
+    let segment_dir_escaped = segment_dir.to_str().unwrap().replace("\\", "/");
+
     // create segmentation sidecar
     let segmentation = tauri::api::process::Command::new_sidecar("segmentation")
         .expect("Failed to create segmentation sidecar")
         .args(&[
             micrograph.path.unwrap(),
-            segment_dir.to_str().unwrap().to_string(),
+            segment_dir_escaped,
+            segment_dir.join("../segments.json").to_str().unwrap().to_string()
         ])
         .output()
         .expect("Failed to run segmentation");
@@ -111,10 +116,13 @@ pub async fn analyze_segments(app: &tauri::AppHandle, micrograph_id: String) {
         .join(micrograph.uuid.to_string())
         .join("segments");
 
+    // escape backslashes (windows) with forward slashes because python doesn't like backslashes
+    let segment_dir_escaped = segment_dir.to_str().unwrap().replace("\\", "/");
+
     // run analysis sidecar
     let analysis = tauri::api::process::Command::new_sidecar("analysis")
         .expect("Failed to create analysis sidecar")
-        .args(&["-d".to_string(), segment_dir.to_str().unwrap().to_string()])
+        .args(&["-d".to_string(), segment_dir_escaped])
         .output()
         .expect("Failed to run analysis");
 
