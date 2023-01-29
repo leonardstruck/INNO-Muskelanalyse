@@ -65,7 +65,7 @@ const ImageViewer = ({ micrograph, segments }: ImageViewerProps) => {
             {micrograph && micrograph.display_path && micrograph.width && micrograph.height && (
                 <div className="bg-gray-900 relative">
                     {hoveredSegment && (
-                        <div className="absolute m-4 z-10 w-52  bg-neutral-300 bg-opacity-80 backdrop-blur-sm overflow-hidden shadow-xl" style={{ left: overlayPosition.left, right: overlayPosition.right, top: overlayPosition.top, bottom: overlayPosition.bottom }}>
+                        <div className="absolute rounded rounded-md m-4 z-10 w-52  bg-neutral-300 bg-opacity-80 backdrop-blur-sm overflow-hidden shadow-xl" style={{ left: overlayPosition.left, right: overlayPosition.right, top: overlayPosition.top, bottom: overlayPosition.bottom }}>
                             <SegmentDetails segment={hoveredSegment} />
                         </div>
                     )}
@@ -83,7 +83,7 @@ const ImageViewer = ({ micrograph, segments }: ImageViewerProps) => {
                                 const widthX = Math.floor((width / micrograph.width) * viewerWidth);
                                 const heightY = Math.floor((height / micrograph.height) * viewerHeight);
 
-                                return <div key={segment.uuid} onMouseOver={() => setHoveredSegment(segment)} onMouseOut={() => setHoveredSegment(undefined)} style={{ left: positionX, top: positionY, width: widthX, height: heightY }} className={clsx("absolute border", segment.status == "ok" ? "border-green-600" : "border-red-600", "hover:border-blue-600 cursor-pointer")}></div>
+                                return <div key={segment.uuid} onMouseOver={() => setHoveredSegment(segment)} onMouseOut={() => setHoveredSegment(undefined)} style={{ left: positionX, top: positionY, width: widthX, height: heightY }} className={clsx("absolute border rounded-sm transition-transform", segment.status == "ok" ? "border-green-600" : "border-red-600", "hover:border-blue-600 hover:scale-110 hover:backdrop-brightness-200 cursor-pointer")}></div>
                             })
                             }
                         </TransformComponent>
