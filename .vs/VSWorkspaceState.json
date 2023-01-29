@@ -1,7 +1,8 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\MuscleCellsOverlap"
   ],
-  "SelectedNode": "\\C:\\Users\\hoke2\\Source\\Repos\\INNO-Muskelanalyse",
+  "SelectedNode": "\\MuscleCellsOverlap\\Blob_Detection.py",
   "PreviewInSolutionExplorer": false
 }
