@@ -55,9 +55,9 @@ def calcPoints(img):
     midBottom = [float((bottomLeft[0] + bottomRight[0]) / 2),
                  float((bottomLeft[1] + bottomRight[1]) / 2)]
     midMiddle = getMidPoint(midTop, midBottom)
-    print("MidTop: ", midTop)
-    print("MidBottom: ", midBottom)
-    print("MidMiddle: ", midMiddle)
+    #print("MidTop: ", midTop)
+    #print("MidBottom: ", midBottom)
+    #print("MidMiddle: ", midMiddle)
     return midTop, midBottom, midMiddle
 
 
@@ -67,10 +67,10 @@ def getParams(img):
 
     direction = ((math.atan(
         (top[1] - bottom[1])/(top[0] - bottom[0])) * 180 / math.pi) + 180) % 360  # + 180 um 0 grad anders zu definieren
-    print("Direction: ", direction)
+    #print("Direction: ", direction)
     length = numpy.sqrt(numpy.square(
         top[0] - bottom[0]) + numpy.square(top[1] - bottom[1]))
-    print("Length: ", length)  # +/- 3 Pixel bis jetzt bei meinen 2 Tests
+    # print("Length: ", length)  # +/- 3 Pixel bis jetzt bei meinen 2 Tests
 
     start = (int(top[1]), int(top[0]))
     end = (int(bottom[1]), int(bottom[0]))
@@ -165,19 +165,19 @@ def boxTest(arg):
 
 def checkFragmentsFromFolder():
     directory = "fragments/Neuer"
-    print(directory)
+    # print(directory)
     jsons = []
     for filename in os.listdir(directory):
-        print()
-        print(filename)
+        # print()
+        # print(filename)
         f = os.path.join(directory, filename)
         # checking if it is a file
-        print("file: ", f)
+        #print("file: ", f)
         if os.path.isfile(f):
             img = cv2.imread(f)
             if img is not None:
                 # libpng warning: iCCP: known incorrect sRGB profile
-                print("boxTest: ")
+                #print("boxTest: ")
                 jsons.append(boxTest(filename))
                 # print("getParams: ")
                 # getParams(img)
@@ -186,11 +186,11 @@ def checkFragmentsFromFolder():
 def checkFragmentsFromArguments():
     jsons = []
     for arg in sys.argv[1:]:
-        print()
-        print(arg)
+        # print()
+        # print(arg)
         img = cv2.imread(arg)
         if img is not None:
-            print("boxTest: ")
+            #print("boxTest: ")
             try:
                 jsons.append(boxTest(arg))
             except Exception as e:
@@ -202,16 +202,16 @@ def checkFragmentsFromArguments():
 
 def checkFragmentsFromDirectory(directory):
     os.chdir(directory)
-    print(directory)
+    # print(directory)
     jsons = []
     for file in os.listdir(directory):
         if os.path.isdir(file):
             continue
-        print()
-        print("file: ", file)
+        # print()
+        #print("file: ", file)
         img = cv2.imread(file)
         if img is not None:
-            print("boxTest: ")
+            #print("boxTest: ")
             try:
                 jsons.append(boxTest(file))
             except Exception as e:
@@ -224,19 +224,19 @@ def checkFragmentsFromDirectory(directory):
 
 def main():
     if len(sys.argv) > 1:
-        print("Arguments found", str(sys.argv))
+        #print("Arguments found", str(sys.argv))
         if sys.argv[1] == "-d":
             return checkFragmentsFromDirectory(sys.argv[2])
         else:
             return checkFragmentsFromArguments()
     else:
         return checkFragmentsFromFolder()
-        print("No fragments folder found")
         raise Exception("No arguments given")
 
 
 try:
-    print(main())
+    # print(main())
+    main()
 except Exception as e:
     print("Exception thrown: ", e)
     input("Press any key to exit...")
