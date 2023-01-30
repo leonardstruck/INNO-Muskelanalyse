@@ -53,7 +53,7 @@ jobs:
         if: matrix.platform == 'windows-latest'
         run: yarn && yarn build
         env:
-          - OpenCV_DIR: C:\OpenCV
+          OpenCV_DIR: C:\OpenCV
       - name: install app dependencies and build it
         if: matrix.platform != 'windows-latest'
       - name: install app dependencies and build it

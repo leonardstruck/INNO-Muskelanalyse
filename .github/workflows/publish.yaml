@@ -51,14 +51,14 @@ jobs:
         run: sudo apt-get install -y libopencv-dev python3-opencv
       - name: install opencv (windows only)
         if: matrix.platform == 'windows-latest'
-        run: |
-          choco install opencv --params "/InstallationPath:C:\OpenCV /Environment:C:\OpenCV"
+        run: choco install opencv --params "/InstallationPath:C:\OpenCV /Environment:C:\OpenCV"
       
       - name: install app dependencies and build it (macos and ubuntu only)
         if: matrix.platform == 'windows-latest'
         run: yarn && yarn build
         env:
           OpenCV_DIR: C:\OpenCV
+
       - name: install app dependencies and build it (windows only)
         if: matrix.platform != 'windows-latest'
         run: yarn && yarn build
