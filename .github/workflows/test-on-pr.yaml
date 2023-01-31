@@ -50,17 +50,17 @@ jobs:
           choco install opencv --params "/InstallationPath:C:\OpenCV /Environment:C:\OpenCV"
 
       - name: install app dependencies and build it
-        if: matrix.platform == 'windows-latest'
-        run: yarn && yarn build
-        env:
-          OpenCV_DIR: C:\OpenCV
-      - name: install app dependencies and build it
-        if: matrix.platform != 'windows-latest'
-        run: yarn && yarn build
-        
-      - name: install app dependencies and build it
         run: yarn && yarn build
         
       - uses: tauri-apps/tauri-action@v0
+        name: build tauri app (macos and ubuntu only)
+        if: matrix.platform != 'windows-latest'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: tauri-apps/tauri-action@v0
+        name: build tauri app (windows only)
+        if: matrix.platform == 'windows-latest'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OpenCV_DIR: C:\OpenCV
