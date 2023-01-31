@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #__next {
+  @apply h-screen;
+  overflow:hidden;
+}
+
+body {
+  @apply bg-gradient-to-b
+      dark:from-gray-800 dark:to-gray-900 dark:text-gray-200
+      from-gray-100 to-gray-300;
+}
