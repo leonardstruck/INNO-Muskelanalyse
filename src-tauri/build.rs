@@ -322,26 +322,25 @@ fn resolve_dependencies() {
     // check if python package pyinstaller is installed
     let output = std::process::Command::new("pyinstaller")
         .arg("--version")
-        .output()
-        .expect("failed to execute process");
+        .output();
 
-    // check if pyinstaller is installed
-    if !output.status.success() {
-        cargo_emit::warning!(
-            "pyinstaller (python compiler) is not installed, installing it now..."
-        );
-        // install pyinstaller with pip
-        let output = std::process::Command::new("python")
-            .arg("-m")
-            .arg("pip")
+    // check if command was successful
+    if !output.is_ok() {
+        cargo_emit::warning!("pyinstaller not found, installing it now");
+
+        // install pyinstaller
+        let output = std::process::Command::new("pip")
             .arg("install")
             .arg("pyinstaller")
             .output()
-            .expect("failed to execute process");
+            .unwrap();
 
-        // check if pyinstalller was installed successfully
+        // check if command was successful
         if !output.status.success() {
-            panic!("pyinstaller could not be installed");
+            panic!(
+                "Failed to install pyinstaller: {}",
+                String::from_utf8(output.stderr).unwrap()
+            );
         }
     }
 }
