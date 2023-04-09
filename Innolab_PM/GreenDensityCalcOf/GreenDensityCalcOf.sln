@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.33516.290
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "GreenDensity", "GreenDensity.pyproj", "{FFFFA8B3-5459-47A6-9BF4-6E8181EF90A7}"
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "GreenDensityCalcOf", "GreenDensityCalcOf.pyproj", "{5E683A8E-0A0F-4D3C-ACA3-53971927225D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,13 +11,13 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{FFFFA8B3-5459-47A6-9BF4-6E8181EF90A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FFFFA8B3-5459-47A6-9BF4-6E8181EF90A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5E683A8E-0A0F-4D3C-ACA3-53971927225D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5E683A8E-0A0F-4D3C-ACA3-53971927225D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {98F01C91-ED96-4655-B549-6679ACA99AD2}
+		SolutionGuid = {C5C7C97A-EE16-404E-B347-17A6C51602E8}
 	EndGlobalSection
 EndGlobal
