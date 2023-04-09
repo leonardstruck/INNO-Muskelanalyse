@@ -186,11 +186,8 @@ def checkFragmentsFromFolder():
 def checkFragmentsFromArguments():
     jsons = []
     for arg in sys.argv[1:]:
-        print()
-        print(arg)
         img = cv2.imread(arg)
         if img is not None:
-            print("boxTest: ")
             try:
                 jsons.append(boxTest(arg))
             except Exception as e:
@@ -230,8 +227,8 @@ def main():
         else:
             return checkFragmentsFromArguments()
     else:
-        return checkFragmentsFromFolder()
-        print("No fragments folder found")
+        # return checkFragmentsFromFolder()
+        # print("No fragments folder found")
         raise Exception("No arguments given")
     
 
@@ -240,4 +237,4 @@ try:
     print(main())
 except Exception as e:
     print("Exception thrown: ", e)
-    input("Press any key to exit...")
+    # input("Press any key to exit...")

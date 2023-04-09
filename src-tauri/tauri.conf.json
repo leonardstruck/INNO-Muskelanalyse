@@ -32,12 +32,12 @@
         "execute": true,
         "scope": [
           {
-            "name": "resources/segmentation/bin/segmentation",
+            "name": "build/cpp/segmentation",
             "sidecar": true,
             "args": true
           },
           {
-            "name": "resources/analysis/bin/analysis",
+            "name": "build/python/dist/**/*",
             "sidecar": true,
             "args": true
           }
@@ -52,8 +52,7 @@
         "depends": []
       },
       "externalBin": [
-        "resources/segmentation/bin/segmentation",
-        "resources/analysis/bin/analysis"
+        "build/cpp/segmentation"
       ],
       "icon": [
         "icons/32x32.png",
@@ -71,7 +70,9 @@
         "providerShortName": null,
         "signingIdentity": null
       },
-      "resources": [],
+      "resources": [
+        "build/python/dist/**/*"
+      ],
       "shortDescription": "",
       "targets": "all",
       "windows": {
