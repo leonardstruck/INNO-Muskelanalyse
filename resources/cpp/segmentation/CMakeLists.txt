@@ -1,33 +1,54 @@
-cmake_minimum_required(VERSION 3.0.0)
-project(segmentation VERSION 0.1.0)
+# Set the minimum version of CMake required to build the project
+cmake_minimum_required(VERSION 3.0)
 
-include(CTest)
-enable_testing()
+# Set the project name and enable C++ language
+project(segmentation)
+enable_language(CXX)
 
+# Find OpenCV package
+find_package(OpenCV REQUIRED)
 
-set(OpenCV_STATIC OFF)
-find_package( OpenCV REQUIRED )
-include_directories( ${OpenCV_INCLUDE_DIRS} )
-
-
+# Add the executable
 add_executable(segmentation main.cpp)
 
-target_link_libraries( segmentation ${OpenCV_LIBS} )
+# Link OpenCV libraries to the executable
+target_link_libraries(segmentation PRIVATE ${OpenCV_LIBS})
 
-if(NOT OpenCV_STATIC)
-    if(WIN32)
-        if(MSVC AND OpenCV_RUNTIME AND OpenCV_ARCH)
-            set(OpenCV_LIB_PATH "${OpenCV_CONFIG_PATH}/${OpenCV_ARCH}/${OpenCV_RUNTIME}/bin")
-            file(GLOB OPENCV_DLL_FILES ${OpenCV_LIB_PATH}/*.*dll)
-            file(COPY ${OPENCV_DLL_FILES} DESTINATION ${CMAKE_BINARY_DIR})
-        else()
-            message(STATUS "Failed to find OpenCV binary folder. Please copy the dll files manually!")
-        endif()
-    endif()
+# Copy OpenCV DLLs to the output directory on Windows
+if(WIN32)
+    file(MAKE_DIRECTORY $<TARGET_FILE_DIR:segmentation>/bin)
+    file(GLOB OPENCV_DLLS "${OpenCV_INSTALL_PATH}/x64/mingw/bin/*.dll")
+    foreach(OPENCV_DLL ${OPENCV_DLLS})
+        add_custom_command(TARGET segmentation POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${OPENCV_DLL}
+            $<TARGET_FILE_DIR:segmentation>)
+    endforeach()
 endif()
 
-set(CPACK_PROJECT_NAME ${PROJECT_NAME})
-set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
-include(CPack)
+# Copy OpenCV dylibs to the output directory on macOS in a bin subdirectory
+if(APPLE)
+    file(MAKE_DIRECTORY $<TARGET_FILE_DIR:segmentation>/bin)
+    file(GLOB OPENCV_DYLIBS "${OpenCV_INSTALL_PATH}/lib/*.dylib")
+    foreach(OPENCV_DYLIB ${OPENCV_DYLIBS})
+        add_custom_command(TARGET segmentation POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${OPENCV_DYLIB}
+            $<TARGET_FILE_DIR:segmentation>)
+    endforeach()
+endif()
 
+# Copy OpenCV so files to the output directory on Linux
+if(UNIX AND NOT APPLE)
+    file(MAKE_DIRECTORY $<TARGET_FILE_DIR:segmentation>/bin)
+    file(GLOB OPENCV_SOS "${OpenCV_INSTALL_PATH}/lib/*.so")
+    foreach(OPENCV_SO ${OPENCV_SOS})
+        add_custom_command(TARGET segmentation POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${OPENCV_SO}
+            $<TARGET_FILE_DIR:segmentation>)
+    endforeach()
+endif()
+
+# Install the executable
 install(TARGETS segmentation DESTINATION bin)
