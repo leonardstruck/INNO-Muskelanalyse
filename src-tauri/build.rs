@@ -102,7 +102,28 @@ fn resolve_python() -> Vec<std::path::PathBuf> {
 
         // check if path is a directory
         if path.is_dir() {
-            paths.push(path);
+            paths.push(path.clone());
+
+            // check if requirements.txt is present and install modules
+            let requirements_path = path.join("requirements.txt");
+            if requirements_path.exists() {
+                use std::process::Command;
+
+                let output = Command::new("pip")
+                    .arg("install")
+                    .arg("-r")
+                    .arg(requirements_path)
+                    .output()
+                    .expect("failed to execute process");
+
+                // panic if pip failed
+                if !output.status.success() {
+                    panic!(
+                        "pip failed with exit code: {}",
+                        output.status.code().unwrap()
+                    );
+                }
+            }
         }
     }
 
@@ -161,8 +182,8 @@ block_cipher = None
                 )
             "#,
                 target_name,
-                path.join("main.py").to_str().unwrap(),
-                path.to_str().unwrap()
+                path.join("main.py").to_str().unwrap().replace("\\", "/"),
+                path.to_str().unwrap().replace("\\", "/")
             )
             .as_str(),
         );
