@@ -16,7 +16,44 @@ target_link_libraries(segmentation PRIVATE ${OpenCV_LIBS})
 
 # Copy OpenCV DLLs to the output directory on Windows
 if(WIN32)
+    # MINGW
     file(GLOB OPENCV_DLLS "${OpenCV_INSTALL_PATH}/x64/mingw/bin/*.dll")
+    foreach(OPENCV_DLL ${OPENCV_DLLS})
+        add_custom_command(TARGET segmentation POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${OPENCV_DLL}
+            $<TARGET_FILE_DIR:segmentation>)
+    endforeach()
+
+    # MSVC 2015
+    file(GLOB OPENCV_DLLS "${OpenCV_INSTALL_PATH}/x64/vc15/bin/*.dll")
+    foreach(OPENCV_DLL ${OPENCV_DLLS})
+        add_custom_command(TARGET segmentation POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${OPENCV_DLL}
+            $<TARGET_FILE_DIR:segmentation>)
+    endforeach()
+
+    # MSVC 2016
+    file(GLOB OPENCV_DLLS "${OpenCV_INSTALL_PATH}/x64/vc16/bin/*.dll")
+    foreach(OPENCV_DLL ${OPENCV_DLLS})
+        add_custom_command(TARGET segmentation POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${OPENCV_DLL}
+            $<TARGET_FILE_DIR:segmentation>)
+    endforeach()
+
+    # MSVC 2017
+    file(GLOB OPENCV_DLLS "${OpenCV_INSTALL_PATH}/x64/vc17/bin/*.dll")
+    foreach(OPENCV_DLL ${OPENCV_DLLS})
+        add_custom_command(TARGET segmentation POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${OPENCV_DLL}
+            $<TARGET_FILE_DIR:segmentation>)
+    endforeach()
+
+    # MSVC 2019
+    file(GLOB OPENCV_DLLS "${OpenCV_INSTALL_PATH}/x64/vc19/bin/*.dll")
     foreach(OPENCV_DLL ${OPENCV_DLLS})
         add_custom_command(TARGET segmentation POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
