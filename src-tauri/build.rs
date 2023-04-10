@@ -99,9 +99,6 @@ fn build_cpp(path: std::path::PathBuf) {
             target_dir_name.clone(),
         )
         .expect("failed to move binary");
-
-        cargo_emit::rustc_link_search!(target_dir_name.to_str().unwrap() => "native");
-        cargo_emit::rustc_link_lib!(target_name => "static");
     }
 }
 
