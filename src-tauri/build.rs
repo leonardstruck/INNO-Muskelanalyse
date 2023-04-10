@@ -56,6 +56,7 @@ fn build_cpp(path: std::path::PathBuf) {
     let bin = Config::new(stripped_path).build();
 
     cargo_emit::rustc_link_search!(bin.display() => "native");
+    cargo_emit::rustc_link_lib!(target_name => "static");
 
     // move binary to target folder if build was not up to date
     if std::path::Path::new(&bin)

@@ -30,22 +30,36 @@ pub async fn segment_micrograph(app: &tauri::AppHandle, micrograph_id: String) {
     // create segmentation path but replace backslashes (windows) with forward slashes
 
     let segment_dir_escaped = segment_dir.to_str().unwrap().replace("\\", "/");
+    let segment_dir_json_escaped = segment_dir.join("../segments.json").to_str().unwrap().replace("\\", "/");
+    let micrograph_path_escaped = micrograph.path.unwrap().replace("\\", "/");
+
+    // print all arguments to console
+    println!(
+        "Running segmentation with arguments: {}, {}, {}",
+        micrograph_path_escaped, segment_dir_escaped, segment_dir_json_escaped
+    );
 
     // create segmentation sidecar
     let segmentation = tauri::api::process::Command::new_sidecar("segmentation")
         .expect("Failed to create segmentation sidecar")
         .args(&[
-            micrograph.path.unwrap(),
+            micrograph_path_escaped,
             segment_dir_escaped,
-            segment_dir
-                .join("../segments.json")
-                .to_str()
-                .unwrap()
-                .to_string(),
+            segment_dir_json_escaped
         ])
         .output()
         .expect("Failed to run segmentation");
 
+    // check if segmentation was successful and panic if not with stderr
+    match segmentation.status.code() {
+        Some(0) => println!("Segmentation completed successfully"),
+        _ => panic!(
+            "Segmentation failed: stderr:{}, stdout:{}",
+            segmentation.stderr, segmentation.stdout
+        )
+    }
+    
+    
     // deserialize segmentation output and save to vector
     let segments: Vec<SegmentationResponse> = serde_json::from_str(&segmentation.stdout)
         .expect("Failed to deserialize segmentation output");
