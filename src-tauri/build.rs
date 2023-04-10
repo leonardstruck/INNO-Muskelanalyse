@@ -45,7 +45,11 @@ fn build_cpp(path: std::path::PathBuf) {
     use cmake::Config;
 
     let path_binding = path.clone();
-    let stripped_path = path_binding.clone().to_str().unwrap().replace("\\\\?\\", "");
+    let stripped_path = path_binding
+        .clone()
+        .to_str()
+        .unwrap()
+        .replace("\\\\?\\", "");
     let target_name = path_binding.file_name().unwrap().to_str().unwrap();
     let extension = if cfg!(target_os = "windows") {
         ".exe"
@@ -54,6 +58,29 @@ fn build_cpp(path: std::path::PathBuf) {
     };
 
     let bin = Config::new(stripped_path).build();
+    let bin_parent = bin.parent().unwrap();
+
+    cargo_emit::rustc_link_search!(bin_parent.display() => "native");
+
+    // scan build directory for libraries (dlls, so, dylib)
+    let libs = std::fs::read_dir(bin_parent).unwrap();
+
+    for lib in libs {
+        let lib = lib.unwrap();
+        let path = lib.path();
+
+        // check if path is a file
+        if path.is_file() {
+            // check if file is a library
+            if path.extension().unwrap_or_default() == "dll"
+                || path.extension().unwrap_or_default() == "so"
+                || path.extension().unwrap_or_default() == "dylib"
+            {
+                cargo_emit::rerun_if_changed!(path.display());
+                cargo_emit::rustc_link_lib!(path.file_stem().unwrap().to_str().unwrap() => "dylib");
+            }
+        }
+    }
 
     // move binary to target folder if build was not up to date
     if std::path::Path::new(&bin)
