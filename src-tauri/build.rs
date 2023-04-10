@@ -55,9 +55,6 @@ fn build_cpp(path: std::path::PathBuf) {
 
     let bin = Config::new(stripped_path).build();
 
-    cargo_emit::rustc_link_search!(bin.display() => "native");
-    cargo_emit::rustc_link_lib!(target_name => "static");
-
     // move binary to target folder if build was not up to date
     if std::path::Path::new(&bin)
         .join("bin")
@@ -68,12 +65,16 @@ fn build_cpp(path: std::path::PathBuf) {
         let target_dir = std::env::current_dir().unwrap().join("build/cpp");
         std::fs::create_dir_all(target_dir.clone()).unwrap();
 
+        let target_dir_name = target_dir.join(append_target_triple(target_name));
         // move binary to target directory
         std::fs::rename(
             bin.join("bin").join(target_name.to_string() + extension),
-            target_dir.join(append_target_triple(target_name)),
+            target_dir_name.clone(),
         )
         .expect("failed to move binary");
+
+        cargo_emit::rustc_link_search!(target_dir_name.to_str().unwrap() => "native");
+        cargo_emit::rustc_link_lib!(target_name => "static");
     }
 }
 
