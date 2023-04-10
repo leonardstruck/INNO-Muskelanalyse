@@ -45,16 +45,22 @@ fn build_cpp(path: std::path::PathBuf) {
     use cmake::Config;
 
     let path_binding = path.clone();
+    let stripped_path = path_binding.clone().to_str().unwrap().replace("\\\\?\\", "");
     let target_name = path_binding.file_name().unwrap().to_str().unwrap();
+    let extension = if cfg!(target_os = "windows") {
+        ".exe"
+    } else {
+        ""
+    };
 
-    let bin = Config::new(path).build();
+    let bin = Config::new(stripped_path).build();
 
     cargo_emit::rustc_link_search!(bin.display() => "native");
 
     // move binary to target folder if build was not up to date
     if std::path::Path::new(&bin)
         .join("bin")
-        .join(target_name)
+        .join(target_name.to_string() + extension)
         .exists()
     {
         // create target directory if it doesn't exist
@@ -63,7 +69,7 @@ fn build_cpp(path: std::path::PathBuf) {
 
         // move binary to target directory
         std::fs::rename(
-            bin.join("bin").join(target_name),
+            bin.join("bin").join(target_name.to_string() + extension),
             target_dir.join(append_target_triple(target_name)),
         )
         .expect("failed to move binary");
