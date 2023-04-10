@@ -280,8 +280,10 @@ coll = COLLECT("#
     std::fs::write(spec_file.clone(), spec_content).unwrap();
 
     // build python projects
-    let mut command = Command::new("pyinstaller");
+    let mut command = Command::new("python");
     command
+        .arg("-m")
+        .arg("PyInstaller")
         .arg("--distpath")
         .arg(target_dir.clone())
         .arg("-y")
@@ -320,7 +322,9 @@ fn append_target_triple(target_name: &str) -> String {
 
 fn resolve_dependencies() {
     // check if python package pyinstaller is installed
-    let output = std::process::Command::new("pyinstaller")
+    let output = std::process::Command::new("python")
+        .arg("-m")
+        .arg("PyInstaller")
         .arg("--version")
         .output();
 
@@ -329,7 +333,9 @@ fn resolve_dependencies() {
         cargo_emit::warning!("pyinstaller not found, installing it now");
 
         // install pyinstaller
-        let output = std::process::Command::new("pip")
+        let output = std::process::Command::new("python")
+            .arg("-m")
+            .arg("pip")
             .arg("install")
             .arg("pyinstaller")
             .output()
