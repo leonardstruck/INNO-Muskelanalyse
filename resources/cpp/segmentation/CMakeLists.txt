@@ -16,7 +16,6 @@ target_link_libraries(segmentation PRIVATE ${OpenCV_LIBS})
 
 # Copy OpenCV DLLs to the output directory on Windows
 if(WIN32)
-    file(MAKE_DIRECTORY $<TARGET_FILE_DIR:segmentation>/bin)
     file(GLOB OPENCV_DLLS "${OpenCV_INSTALL_PATH}/x64/mingw/bin/*.dll")
     foreach(OPENCV_DLL ${OPENCV_DLLS})
         add_custom_command(TARGET segmentation POST_BUILD
@@ -28,7 +27,6 @@ endif()
 
 # Copy OpenCV dylibs to the output directory on macOS in a bin subdirectory
 if(APPLE)
-    file(MAKE_DIRECTORY $<TARGET_FILE_DIR:segmentation>/bin)
     file(GLOB OPENCV_DYLIBS "${OpenCV_INSTALL_PATH}/lib/*.dylib")
     foreach(OPENCV_DYLIB ${OPENCV_DYLIBS})
         add_custom_command(TARGET segmentation POST_BUILD
@@ -40,7 +38,6 @@ endif()
 
 # Copy OpenCV so files to the output directory on Linux
 if(UNIX AND NOT APPLE)
-    file(MAKE_DIRECTORY $<TARGET_FILE_DIR:segmentation>/bin)
     file(GLOB OPENCV_SOS "${OpenCV_INSTALL_PATH}/lib/*.so")
     foreach(OPENCV_SO ${OPENCV_SOS})
         add_custom_command(TARGET segmentation POST_BUILD
@@ -51,4 +48,4 @@ if(UNIX AND NOT APPLE)
 endif()
 
 # Install the executable
-install(TARGETS segmentation DESTINATION bin)
+install(TARGETS segmentation)
