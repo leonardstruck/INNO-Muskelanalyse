@@ -11,13 +11,7 @@ import json
 import argparse
 
 
-def getMidPoint(p1, p2):
-    return [float((p1[0] + p2[0]) / 2), float((p1[1] + p2[1]) / 2)]
-
-
 def getDirection(p1, p2):
-    # devPrint("p1: ", p1)
-    # devPrint("p2: ", p2)
     if p1[0] == p2[0]:
         return 0
     direction = math.atan((p1[1] - p2[1])/(p1[0] - p2[0])) * 180 / math.pi
@@ -26,70 +20,12 @@ def getDirection(p1, p2):
     return direction
 
 
-def calcPoints(img):
-    height, width, channels = img.shape  # BGR
-
-    # Arrays with furthest points
-    topLeft = [height, width]
-    topRight = [height, 0]
-    bottomLeft = [0, width]
-    bottomRight = [0, 0]
-
-    for i in range(0, height):
-        for j in range(0, width):
-            if img[i, j, 1] > 0 and img[i, j, 2] > 0 and img[i, j, 0] > 0:
-                if i <= topLeft[0] and j <= topLeft[1]:
-                    topLeft = [i, j]
-                if i <= topRight[0] and j >= topRight[1]:
-                    topRight = [i, j]
-                if i >= bottomRight[0] and j >= bottomRight[1]:
-                    bottomRight = [i, j]
-                if i >= bottomRight[0]:
-                    if i > bottomRight[0]:
-                        bottomRight = [i, j]
-                    elif j > bottomRight[1]:
-                        bottomRight = [i, j]
-                if i > bottomLeft[0]:
-                    bottomLeft = [i, j]
-    midTop = [float((topLeft[0] + topRight[0]) / 2),
-              float((topLeft[1] + topRight[1]) / 2)]
-    midBottom = [float((bottomLeft[0] + bottomRight[0]) / 2),
-                 float((bottomLeft[1] + bottomRight[1]) / 2)]
-    midMiddle = getMidPoint(midTop, midBottom)
-    # devPrint("MidTop: ", midTop)
-    # devPrint("MidBottom: ", midBottom)
-    # devPrint("MidMiddle: ", midMiddle)
-    return midTop, midBottom, midMiddle
-
-
-def getParams(img):
-    # diese Funktion muss noch verbessert werden -> genauer werden
-    top, bottom, middle = calcPoints(img)
-
-    direction = ((math.atan(
-        (top[1] - bottom[1])/(top[0] - bottom[0])) * 180 / math.pi) + 180) % 360  # + 180 um 0 grad anders zu definieren
-    # devPrint("Direction: ", direction)
-    length = numpy.sqrt(numpy.square(
-        top[0] - bottom[0]) + numpy.square(top[1] - bottom[1]))
-    # devPrint("Length: ", length)  # +/- 3 Pixel bis jetzt bei meinen 2 Tests
-
-    start = (int(top[1]), int(top[0]))
-    end = (int(bottom[1]), int(bottom[0]))
-
-    # show line
-    lined = img.copy()
-    cv2.line(lined, start, end, (255, 0, 255), 1)
-    # cv2.imshow("img", lined)
-    # cv2.waitKey(0)
-
-
 def midpoint(ptA, ptB):
     return ((ptA[0] + ptB[0]) * 0.5, (ptA[1] + ptB[1]) * 0.5)
 
 
 def boxTest(arg, isDev=False):
     image = cv2.imread(arg)
-    # gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     edged = cv2.Canny(image, 50, 100)
     # close gaps between object edges
     edged = cv2.dilate(edged, None, iterations=1)
@@ -98,14 +34,7 @@ def boxTest(arg, isDev=False):
     cnts = cv2.findContours(edged.copy(), cv2.RETR_EXTERNAL,
                             cv2.CHAIN_APPROX_SIMPLE)
     cnts = imutils.grab_contours(cnts)
-    # devPrint("contours: ", cnts)
-
     (cnts, _) = contours.sort_contours(cnts)
-    # pixelsPerMetric = None
-    # cv2.imshow("edged", edged)
-    # cv2.imwrite(arg + "edged.png", edged)
-    # cv2.waitKey(0)
-
     for c in cnts:
         # if the contour is not sufficiently large, ignore it
         if cv2.contourArea(c) < 1:
@@ -145,22 +74,12 @@ def boxTest(arg, isDev=False):
             cv2.imshow("Image", orig)
             cv2.waitKey(0)
             cv2.imwrite(arg + "box.png", orig)
-
-        # compute the Euclidean distance between the midpoints
         dA = dist.euclidean((tltrX, tltrY), (blbrX, blbrY))
         dB = dist.euclidean((tlblX, tlblY), (trbrX, trbrY))
         if dA > dB:
             angle = getDirection((tltrX, tltrY), (blbrX, blbrY))
         else:
             angle = getDirection((tlblX, tlblY), (trbrX, trbrY))
-        # if the pixels per metric has not been initialized, then
-        # compute it as the ratio of pixels to supplied metric
-        # (in this case, inches)
-        # if pixelsPerMetric is None:
-        #    pixelsPerMetric = dB / image.shape[1]
-        # devPrint("dA: ", round(dA, 2))
-        # devPrint("dB: ", round(dB, 2))
-        # devPrint("angle: {}°".format(round(angle, 2)))
         value = {
             "path": arg,
             "directionA": round(dA, 2),
@@ -168,43 +87,6 @@ def boxTest(arg, isDev=False):
             "angle": round(angle, 2)
         }
         return json.dumps(value)
-
-
-def checkFragmentsFromFolder():
-    directory = "fragments/Neuer"
-    # devPrint(directory)
-    jsons = []
-    for filename in os.listdir(directory):
-        # devPrint()
-        # devPrint(filename)
-        f = os.path.join(directory, filename)
-        # checking if it is a file
-        # devPrint("file: ", f)
-        if os.path.isfile(f):
-            img = cv2.imread(f)
-            if img is not None:
-                # libpng warning: iCCP: known incorrect sRGB profile
-                # devPrint("boxTest: ")
-                jsons.append(boxTest(filename))
-                # devPrint("getParams: ")
-                # getParams(img)
-
-
-def checkFragmentsFromArguments():
-    jsons = []
-    for arg in sys.argv[1:]:
-        # devPrint()
-        # devPrint(arg)
-        img = cv2.imread(arg)
-        if img is not None:
-            # devPrint("boxTest: ")
-            try:
-                jsons.append(boxTest(arg))
-            except Exception as e:
-                devPrint("Exception thrown: ", e)
-        else:
-            raise Exception("File not an image: " + arg)
-    return jsons
 
 
 def checkFragmentsFromArgument(path, isDev=False):
@@ -218,39 +100,8 @@ def checkFragmentsFromArgument(path, isDev=False):
         raise Exception("File not an image: " + path)
 
 
-def checkFragmentsFromDirectory(directory):
-    os.chdir(directory)
-    # devPrint(directory)
-    jsons = []
-    for file in os.listdir(directory):
-        if os.path.isdir(file):
-            continue
-        # devPrint()
-        # devPrint("file: ", file)
-        img = cv2.imread(file)
-        if img is not None:
-            # devPrint("boxTest: ")
-            try:
-                jsons.append(boxTest(file))
-            except Exception as e:
-                devPrint("Exception thrown: ", e)
-        else:
-            # raise Exception("File not an image: " + file)
-            devPrint("File not an image: " + file)
-    return jsons
-
-
 def main(path, isDev=False):
     return checkFragmentsFromArgument(path, isDev)
-    if len(sys.argv) > 1:
-        # devPrint("Arguments found", str(sys.argv))
-        if sys.argv[1] == "-d":
-            return checkFragmentsFromDirectory(sys.argv[2])
-        else:
-            return checkFragmentsFromArguments()
-    else:
-        return checkFragmentsFromFolder()
-        raise Exception("No arguments given")
 
 
 def devPrint(*arg, **kwargs):
