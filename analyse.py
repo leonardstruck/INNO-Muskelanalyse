@@ -74,8 +74,8 @@ def boxTest(arg, isDev=False):
 
         devPrint("Is Dev: ", isDev)
         if isDev:
-            cv2.imshow("Image", orig)
-            cv2.waitKey(0)
+            # cv2.imshow("Image", orig)
+            # cv2.waitKey(0)
             cv2.imwrite(arg + "box.png", orig)
         dA = dist.euclidean((tltrX, tltrY), (blbrX, blbrY))
         dB = dist.euclidean((tlblX, tlblY), (trbrX, trbrY))
