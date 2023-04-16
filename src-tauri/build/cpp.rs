@@ -7,7 +7,6 @@ pub struct Builder {
 }
 
 struct Bin {
-    name: String,
     path: std::path::PathBuf,
 }
 
@@ -126,10 +125,7 @@ fn build_cpp(path: std::path::PathBuf) -> Bin {
 
     cargo_emit::rustc_link_search!(bin.display() => "native");
 
-    Bin {
-        name: name.to_string(),
-        path: bin,
-    }
+    Bin { path: bin }
 }
 
 fn resolve_libs(bin: std::path::PathBuf) -> Vec<std::path::PathBuf> {

@@ -133,13 +133,18 @@ impl Builder {
 
         // copy all binaries to the target directory
         for path in &self.paths {
-            let target_path = get_bin_dir().join(path.file_name().unwrap());
+            let target_name = path.file_name().unwrap().to_str().unwrap();
 
-            let bin_path = self
-                .out_dir
-                .clone()
-                .join("python")
-                .join(path.file_name().unwrap());
+            // append .exe if on windows
+            let target_name = if cfg!(target_os = "windows") {
+                format!("{}.exe", target_name)
+            } else {
+                target_name.to_string()
+            };
+
+            let target_path = get_bin_dir().join(target_name.clone());
+
+            let bin_path = self.out_dir.clone().join("python").join(target_name);
 
             // copy file only if it doesn't exist or if it is newer
             if !target_path.exists()
