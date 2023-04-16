@@ -8,6 +8,7 @@ mod data;
 mod models;
 mod schema;
 mod tasks;
+mod utils;
 
 use tauri::Manager;
 

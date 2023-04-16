@@ -71,7 +71,7 @@ impl Builder {
 
     fn copy_files(&self) {
         // copy all libs to the target directory
-        let target_dir = crate::utils::get_target_dir();
+        let target_dir = crate::utils::get_bin_dir();
 
         for lib in self.libs.clone() {
             let out_path = target_dir.join(lib.file_name().unwrap());
@@ -86,7 +86,7 @@ impl Builder {
         let bin_dir = crate::utils::get_bin_dir();
 
         for bin in &self.bins {
-            let out_path = bin_dir.join(crate::utils::append_target_triple(&bin.name));
+            let out_path = bin_dir.join(&bin.name);
 
             // copy file only if bin is newer than the existing one
             if !out_path.exists()

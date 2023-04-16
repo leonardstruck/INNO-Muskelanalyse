@@ -68,7 +68,7 @@
         "digestAlgorithm": "sha256",
         "timestampUrl": ""
       },
-      "externalBin": [
+      "resources": [
         "target/bin/**/*"
       ]
     },

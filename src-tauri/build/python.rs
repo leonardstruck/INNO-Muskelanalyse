@@ -72,10 +72,10 @@ impl Builder {
 
     fn copy_files(&self) {
         // copy all libs to the target directory
-        let target_dir = crate::utils::get_target_dir();
+        let resource_dir = crate::utils::get_bin_dir();
 
         for lib in self.libs.clone() {
-            let target_path = target_dir.join(lib.file_name().unwrap());
+            let target_path = resource_dir.join(lib.file_name().unwrap());
 
             // copy file only if it doesn't exist
             if !target_path.exists() {
@@ -103,7 +103,7 @@ impl Builder {
             // check if file is a zip file
             if path.extension().unwrap() == "zip" {
                 // copy file only if it doesn't exist
-                let target_path = target_dir.join(path.file_name().unwrap());
+                let target_path = resource_dir.join(path.file_name().unwrap());
                 if !target_path.exists() {
                     std::fs::copy(path, target_path).unwrap();
                 }
@@ -125,7 +125,7 @@ impl Builder {
             // copy folder recursively
             fs_extra::dir::copy(
                 path,
-                target_dir.clone(),
+                resource_dir.clone(),
                 &fs_extra::dir::CopyOptions::new().skip_exist(true),
             )
             .unwrap();
@@ -133,9 +133,7 @@ impl Builder {
 
         // copy all binaries to the target directory
         for path in &self.paths {
-            let target_path = get_bin_dir().join(crate::utils::append_target_triple(
-                path.file_name().unwrap().to_str().unwrap(),
-            ));
+            let target_path = get_bin_dir().join(path.file_name().unwrap());
 
             let bin_path = self
                 .out_dir

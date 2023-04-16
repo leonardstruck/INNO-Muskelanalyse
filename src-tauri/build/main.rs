@@ -6,6 +6,9 @@ fn main() {
     // check if all build dependencies are installed
     utils::resolve_dependencies();
 
+    // clear the bin directory to avoid outdated files
+    utils::clear_bin_dir();
+
     //
     // BUILD CPP PROJECTS
     //

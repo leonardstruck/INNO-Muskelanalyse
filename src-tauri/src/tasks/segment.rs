@@ -44,15 +44,16 @@ pub async fn segment_micrograph(app: &tauri::AppHandle, micrograph_id: String) {
     );
 
     // create segmentation sidecar
-    let segmentation = tauri::api::process::Command::new_sidecar("segmentation")
-        .expect("Failed to create segmentation sidecar")
-        .args(&[
-            micrograph_path_escaped,
-            segment_dir_escaped,
-            segment_dir_json_escaped,
-        ])
-        .output()
-        .expect("Failed to run segmentation");
+    let segmentation =
+        tauri::api::process::Command::new(crate::utils::resolve_bin_name("segmentation"))
+            .current_dir(crate::utils::resolve_bin_dir(app))
+            .args(&[
+                micrograph_path_escaped,
+                segment_dir_escaped,
+                segment_dir_json_escaped,
+            ])
+            .output()
+            .expect("Failed to run segmentation");
 
     // check if segmentation was successful and panic if not with stderr
     match segmentation.status.code() {
@@ -147,16 +148,17 @@ pub async fn analyze_segments(app: &tauri::AppHandle, micrograph_id: String) {
 
     while segment_batch.len() > 0 {
         // run analysis sidecar
-        let analysis_command = tauri::api::process::Command::new_sidecar("analysis")
-            .expect("Failed to create analysis sidecar")
-            .args(segment_batch.iter().map(|segment| {
-                segment_dir
-                    .clone()
-                    .join(segment.filename.clone())
-                    .to_str()
-                    .unwrap()
-                    .to_string()
-            }));
+        let analysis_command =
+            tauri::api::process::Command::new(crate::utils::resolve_bin_name("analysis"))
+                .current_dir(crate::utils::resolve_bin_dir(app))
+                .args(segment_batch.iter().map(|segment| {
+                    segment_dir
+                        .clone()
+                        .join(segment.filename.clone())
+                        .to_str()
+                        .unwrap()
+                        .to_string()
+                }));
 
         println!("Running analysis: {:?}", analysis_command);
 
@@ -179,7 +181,10 @@ pub async fn analyze_segments(app: &tauri::AppHandle, micrograph_id: String) {
                 "Analysis failed: stderr:{}, stdout:{}",
                 analysis.stderr, analysis.stdout
             ),
-            _ => println!("Analysis failed"),
+            _ => println!(
+                "Analysis failed: stderr:{}, stdout:{}",
+                analysis.stderr, analysis.stdout
+            ),
         }
 
         // parse analysis output
