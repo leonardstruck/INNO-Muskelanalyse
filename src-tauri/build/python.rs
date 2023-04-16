@@ -27,6 +27,9 @@ impl Builder {
             panic!("vendor directory does not exist");
         }
 
+        // tell cargo to rerun build script if vendor directory changes
+        println!("cargo:rerun-if-changed={}", path.to_str().unwrap());
+
         self.paths.push(path);
     }
 
