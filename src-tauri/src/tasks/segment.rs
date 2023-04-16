@@ -43,7 +43,6 @@ pub async fn segment_micrograph(app: &tauri::AppHandle, micrograph_id: String) {
         micrograph_path_escaped, segment_dir_escaped, segment_dir_json_escaped
     );
 
-    // create segmentation sidecar
     let segmentation =
         tauri::api::process::Command::new(crate::utils::resolve_bin_name("segmentation"))
             .current_dir(crate::utils::resolve_bin_dir(app))
@@ -51,9 +50,12 @@ pub async fn segment_micrograph(app: &tauri::AppHandle, micrograph_id: String) {
                 micrograph_path_escaped,
                 segment_dir_escaped,
                 segment_dir_json_escaped,
-            ])
-            .output()
-            .expect("Failed to run segmentation");
+            ]);
+
+    println!("Running segmentation: {:?}", segmentation);
+
+    // run segmentation sidecar
+    let segmentation = segmentation.output().expect("Failed to run segmentation");
 
     // check if segmentation was successful and panic if not with stderr
     match segmentation.status.code() {
