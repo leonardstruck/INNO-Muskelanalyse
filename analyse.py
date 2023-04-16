@@ -18,8 +18,7 @@ def getDirection(p1, p2):
     if p1[0] == p2[0]:
         return 90
     direction = math.atan((p1[1] - p2[1])/(p1[0] - p2[0])) * 180 / math.pi
-    if direction < 0:
-        direction += 180
+    direction = direction % 180
     return direction
 
 
