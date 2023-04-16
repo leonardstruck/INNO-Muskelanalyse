@@ -86,7 +86,7 @@ impl Builder {
         let bin_dir = crate::utils::get_bin_dir();
 
         for bin in &self.bins {
-            let out_path = bin_dir.join(&bin.name);
+            let out_path = bin_dir.join(&bin.path.file_name().unwrap());
 
             // copy file only if bin is newer than the existing one
             if !out_path.exists()
