@@ -130,7 +130,7 @@ fn build_cpp(path: std::path::PathBuf) -> Bin {
 
 fn resolve_libs(bin: std::path::PathBuf) -> Vec<std::path::PathBuf> {
     // scan build directory for libraries (dlls, so, dylib)
-    let libs = std::fs::read_dir(bin).unwrap();
+    let libs = std::fs::read_dir(bin.parent().unwrap().join("build")).unwrap();
 
     // create a vector of all paths
     let mut paths: Vec<std::path::PathBuf> = Vec::new();
