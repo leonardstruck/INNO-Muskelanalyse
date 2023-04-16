@@ -121,7 +121,7 @@ fn build_cpp(path: std::path::PathBuf) -> Bin {
     let bin = Config::new(stripped_path)
         .profile("Release")
         .build()
-        .join("build")
+        .join("bin")
         .join(name_with_extension);
 
     cargo_emit::rustc_link_search!(bin.display() => "native");
