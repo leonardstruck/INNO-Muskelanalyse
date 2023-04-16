@@ -1,9 +1,6 @@
-use crate::utils::get_bin_dir;
-
 pub struct Builder {
     vendor_dir: std::path::PathBuf,
     paths: Vec<std::path::PathBuf>,
-    libs: Vec<std::path::PathBuf>,
     out_dir: std::path::PathBuf,
 }
 
@@ -15,7 +12,6 @@ impl Builder {
             vendor_dir,
             paths: Vec::new(),
             out_dir: crate::utils::get_output_dir(),
-            libs: Vec::new(),
         }
     }
 
@@ -63,62 +59,28 @@ impl Builder {
     pub fn build(&mut self) {
         self.resolve_requirements();
         build_python_projects(self.paths.clone());
-
-        // resolve libs
-        self.libs = resolve_libs(self.out_dir.clone().join("python"));
-
         self.copy_files();
     }
 
     fn copy_files(&self) {
-        // copy all libs to the target directory
         let resource_dir = crate::utils::get_bin_dir();
 
-        for lib in self.libs.clone() {
-            let target_path = resource_dir.join(lib.file_name().unwrap());
-
-            // copy file only if it doesn't exist
-            if !target_path.exists() {
-                std::fs::copy(lib, target_path).unwrap();
-            }
-        }
-
-        // copy all generated .zip files to the target directory
-        let files = std::fs::read_dir(self.out_dir.clone().join("python")).unwrap();
-
-        for file in files {
-            let file = file.unwrap();
-            let path = file.path();
-
-            // skip directories
-            if path.is_dir() {
-                continue;
-            }
-
-            // check if file has a file extension
-            if path.extension().is_none() {
-                continue;
-            }
-
-            // check if file is a zip file
-            if path.extension().unwrap() == "zip" {
-                // copy file only if it doesn't exist
-                let target_path = resource_dir.join(path.file_name().unwrap());
-                if !target_path.exists() {
-                    std::fs::copy(path, target_path).unwrap();
-                }
-            }
-        }
-
-        // copy all folders recursively to the target directory
+        // copy all folders and files recursively to the target directory
         let folders = std::fs::read_dir(self.out_dir.clone().join("python")).unwrap();
 
         for folder in folders {
             let folder = folder.unwrap();
             let path = folder.path();
 
-            // skip files
+            // check if path is a file
             if path.is_file() {
+                // copy file
+                fs_extra::file::copy(
+                    path.clone(),
+                    resource_dir.clone().join(path.file_name().unwrap()),
+                    &fs_extra::file::CopyOptions::new().skip_exist(true),
+                )
+                .unwrap();
                 continue;
             }
 
@@ -129,30 +91,6 @@ impl Builder {
                 &fs_extra::dir::CopyOptions::new().skip_exist(true),
             )
             .unwrap();
-        }
-
-        // copy all binaries to the target directory
-        for path in &self.paths {
-            let target_name = path.file_name().unwrap().to_str().unwrap();
-
-            // append .exe if on windows
-            let target_name = if cfg!(target_os = "windows") {
-                format!("{}.exe", target_name)
-            } else {
-                target_name.to_string()
-            };
-
-            let target_path = get_bin_dir().join(target_name.clone());
-
-            let bin_path = self.out_dir.clone().join("python").join(target_name);
-
-            // copy file only if it doesn't exist or if it is newer
-            if !target_path.exists()
-                || target_path.metadata().unwrap().modified().unwrap()
-                    < bin_path.metadata().unwrap().modified().unwrap()
-            {
-                std::fs::copy(bin_path, target_path).unwrap();
-            }
         }
     }
 }
@@ -349,30 +287,4 @@ coll = COLLECT("#
             String::from_utf8(output.stderr).unwrap()
         );
     }
-}
-
-fn resolve_libs(out_path: std::path::PathBuf) -> Vec<std::path::PathBuf> {
-    // scan build directory for libraries (dlls, so, dylib)
-    let libs = std::fs::read_dir(out_path).unwrap();
-
-    // create a vector of all paths
-    let mut paths: Vec<std::path::PathBuf> = Vec::new();
-
-    for lib in libs {
-        let lib = lib.unwrap();
-        let path = lib.path();
-
-        // check if path is a file
-        if path.is_file() {
-            // check if file is a library
-            if path.extension().unwrap_or_default() == "dll"
-                || path.extension().unwrap_or_default() == "so"
-                || path.extension().unwrap_or_default() == "dylib"
-            {
-                paths.push(path.clone());
-            }
-        }
-    }
-
-    paths
 }
