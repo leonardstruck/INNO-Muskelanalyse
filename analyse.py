@@ -27,7 +27,7 @@ def midpoint(ptA, ptB):
     return ((ptA[0] + ptB[0]) * 0.5, (ptA[1] + ptB[1]) * 0.5)
 
 
-def boxTest(arg, isDev=False):
+def boxTest(arg):
     image = cv2.imread(arg)
     edged = cv2.Canny(image, 50, 100)
     # close gaps between object edges
@@ -72,13 +72,21 @@ def boxTest(arg, isDev=False):
         cv2.line(orig, (int(tlblX), int(tlblY)), (int(trbrX), int(trbrY)),
                  (255, 0, 255), 1)
 
-        devPrint("Is Dev: ", isDev)
-        if isDev:
+        if args.development:
             # cv2.imshow("Image", orig)
             # cv2.waitKey(0)
             cv2.imwrite(arg + "box.png", orig)
         dA = dist.euclidean((tltrX, tltrY), (blbrX, blbrY))
         dB = dist.euclidean((tlblX, tlblY), (trbrX, trbrY))
+
+        # check if the box we got is too small
+        if dA < (image.shape[0] * 0.9) and dB < (image.shape[1]*0.9):
+            devPrint("shape 0: ", image.shape[0])
+            devPrint("shape 1: ", image.shape[1])
+            devPrint("dA: ", dA)
+            devPrint("dB: ", dB)
+            return json.dumps({"path": arg, "error": "measuring failed"})
+
         if dA > dB:
             angle = getDirection((tltrX, tltrY), (blbrX, blbrY))
         else:
@@ -92,24 +100,23 @@ def boxTest(arg, isDev=False):
         return json.dumps(value)
 
 
-def checkFragmentsFromArgument(path, isDev=False):
+def checkFragmentsFromArgument(path):
     img = cv2.imread(path)
     if img is not None:
         try:
-            return boxTest(path, isDev)
+            return boxTest(path)
         except Exception as e:
             devPrint("Exception thrown: ", e)
     else:
         raise Exception("File not an image: " + path)
 
 
-def main(path, isDev=False):
-    return checkFragmentsFromArgument(path, isDev)
+def main(path):
+    return checkFragmentsFromArgument(path)
 
 
 def devPrint(*arg, **kwargs):
     if args.development:
-        print(args.development)
         print(*arg, **kwargs)
 
 
@@ -125,7 +132,7 @@ try:
     devPrint("System Arguments: ", sys.argv)
 
     if args.development:
-        devPrint(main(args.path, True))
+        devPrint(main(args.path))
     else:
         main(args.path)
 except Exception as e:
