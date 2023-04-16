@@ -79,23 +79,31 @@ def boxTest(arg):
         dA = dist.euclidean((tltrX, tltrY), (blbrX, blbrY))
         dB = dist.euclidean((tlblX, tlblY), (trbrX, trbrY))
 
+        if dA > dB:
+            angle = getDirection((tltrX, tltrY), (blbrX, blbrY))
+        else:
+            angle = getDirection((tlblX, tlblY), (trbrX, trbrY))
+
         # check if the box we got is too small
         if dA < (image.shape[0] * 0.9) and dB < (image.shape[1]*0.9):
             devPrint("shape 0: ", image.shape[0])
             devPrint("shape 1: ", image.shape[1])
             devPrint("dA: ", dA)
             devPrint("dB: ", dB)
-            return json.dumps({"path": arg, "error": "measuring failed"})
+            return json.dumps({
+                "path": arg,
+                "directionA": round(dA, 2),
+                "directionB": round(dB, 2),
+                "angle": round(angle, 2),
+                "status": "error"
+            })
 
-        if dA > dB:
-            angle = getDirection((tltrX, tltrY), (blbrX, blbrY))
-        else:
-            angle = getDirection((tlblX, tlblY), (trbrX, trbrY))
         value = {
             "path": arg,
             "directionA": round(dA, 2),
             "directionB": round(dB, 2),
-            "angle": round(angle, 2)
+            "angle": round(angle, 2),
+            "status": "success"
         }
         return json.dumps(value)
 
