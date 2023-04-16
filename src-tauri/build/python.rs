@@ -122,11 +122,13 @@ impl Builder {
                 continue;
             }
 
-            // copy folder only if it doesn't exist
-            let target_path = target_dir.join(path.file_name().unwrap());
-            if !target_path.exists() {
-                crate::utils::copy_dir(path, target_path)
-            }
+            // copy folder recursively
+            fs_extra::dir::copy(
+                path,
+                target_dir.clone(),
+                &fs_extra::dir::CopyOptions::new().skip_exist(true),
+            )
+            .unwrap();
         }
 
         // copy all binaries to the target directory

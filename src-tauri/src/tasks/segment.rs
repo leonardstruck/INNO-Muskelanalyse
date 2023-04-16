@@ -30,7 +30,11 @@ pub async fn segment_micrograph(app: &tauri::AppHandle, micrograph_id: String) {
     // create segmentation path but replace backslashes (windows) with forward slashes
 
     let segment_dir_escaped = segment_dir.to_str().unwrap().replace("\\", "/");
-    let segment_dir_json_escaped = segment_dir.join("../segments.json").to_str().unwrap().replace("\\", "/");
+    let segment_dir_json_escaped = segment_dir
+        .join("../segments.json")
+        .to_str()
+        .unwrap()
+        .replace("\\", "/");
     let micrograph_path_escaped = micrograph.path.unwrap().replace("\\", "/");
 
     // print all arguments to console
@@ -45,7 +49,7 @@ pub async fn segment_micrograph(app: &tauri::AppHandle, micrograph_id: String) {
         .args(&[
             micrograph_path_escaped,
             segment_dir_escaped,
-            segment_dir_json_escaped
+            segment_dir_json_escaped,
         ])
         .output()
         .expect("Failed to run segmentation");
@@ -56,10 +60,9 @@ pub async fn segment_micrograph(app: &tauri::AppHandle, micrograph_id: String) {
         _ => panic!(
             "Segmentation failed: stderr:{}, stdout:{}",
             segmentation.stderr, segmentation.stdout
-        )
+        ),
     }
-    
-    
+
     // deserialize segmentation output and save to vector
     let segments: Vec<SegmentationResponse> = serde_json::from_str(&segmentation.stdout)
         .expect("Failed to deserialize segmentation output");
@@ -144,16 +147,16 @@ pub async fn analyze_segments(app: &tauri::AppHandle, micrograph_id: String) {
 
     while segment_batch.len() > 0 {
         // run analysis sidecar
-        let analysis_command = crate::helpers::python::Command::new("analysis", app).args(
-            segment_batch.iter().map(|segment| {
+        let analysis_command = tauri::api::process::Command::new_sidecar("analysis")
+            .expect("Failed to create analysis sidecar")
+            .args(segment_batch.iter().map(|segment| {
                 segment_dir
                     .clone()
                     .join(segment.filename.clone())
                     .to_str()
                     .unwrap()
                     .to_string()
-            }),
-        );
+            }));
 
         println!("Running analysis: {:?}", analysis_command);
 

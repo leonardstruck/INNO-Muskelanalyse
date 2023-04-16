@@ -5,7 +5,6 @@
 
 mod commands;
 mod data;
-mod helpers;
 mod models;
 mod schema;
 mod tasks;

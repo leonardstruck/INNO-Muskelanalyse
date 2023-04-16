@@ -80,31 +80,3 @@ pub fn get_output_dir() -> std::path::PathBuf {
         .parse()
         .expect("failed to resolve output directory")
 }
-
-pub fn copy_dir(from: std::path::PathBuf, to: std::path::PathBuf) {
-    // check if source directory exists
-    if !from.exists() {
-        std::fs::create_dir_all(from.clone()).unwrap();
-    }
-
-    // check if target directory exists
-    if !to.exists() {
-        std::fs::create_dir_all(to.clone()).unwrap();
-    }
-
-    // copy all files from source directory to target directory
-    for entry in std::fs::read_dir(from).unwrap() {
-        let entry = entry.unwrap();
-        let path = entry.path();
-
-        // check if path is a file
-        if path.is_file() {
-            let target_path = to.join(path.file_name().unwrap());
-
-            // copy file only if it doesn't exist
-            if !target_path.exists() {
-                std::fs::copy(path, target_path).unwrap();
-            }
-        }
-    }
-}
