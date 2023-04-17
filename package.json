@@ -6,7 +6,9 @@
     "dev": "next dev -p 1420",
     "build": "next build && next export -o dist",
     "lint": "next lint",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "tauri:win:dev": "tauri dev --target=x86_64-pc-windows-msvc",
+    "tauri:win:build": "tauri build --target=x86_64-pc-windows-msvc"
   },
   "dependencies": {
     "@headlessui/react": "^1.7.7",
