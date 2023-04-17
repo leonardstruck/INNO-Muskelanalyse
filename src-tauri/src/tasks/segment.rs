@@ -44,7 +44,7 @@ pub async fn segment_micrograph(app: &tauri::AppHandle, micrograph_id: String) {
     );
 
     let segmentation =
-        tauri::api::process::Command::new(crate::utils::resolve_bin_name("segmentation"))
+        tauri::api::process::Command::new(crate::utils::resolve_bin_path(app, "segmentation"))
             .current_dir(crate::utils::resolve_bin_dir(app))
             .args(&[
                 micrograph_path_escaped,
@@ -151,7 +151,7 @@ pub async fn analyze_segments(app: &tauri::AppHandle, micrograph_id: String) {
     while segment_batch.len() > 0 {
         // run analysis sidecar
         let analysis_command =
-            tauri::api::process::Command::new(crate::utils::resolve_bin_name("analysis"))
+            tauri::api::process::Command::new(crate::utils::resolve_bin_path(&app, "analysis"))
                 .current_dir(crate::utils::resolve_bin_dir(app))
                 .args(segment_batch.iter().map(|segment| {
                     segment_dir
