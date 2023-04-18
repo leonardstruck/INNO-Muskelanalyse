@@ -30,17 +30,41 @@ pub async fn segment_micrograph(app: &tauri::AppHandle, micrograph_id: String) {
     // create segmentation path but replace backslashes (windows) with forward slashes
 
     let segment_dir_escaped = segment_dir.to_str().unwrap().replace("\\", "/");
+    let segment_dir_json_escaped = segment_dir
+        .join("../segments.json")
+        .to_str()
+        .unwrap()
+        .replace("\\", "/");
+    let micrograph_path_escaped = micrograph.path.unwrap().replace("\\", "/");
 
-    // create segmentation sidecar
-    let segmentation = tauri::api::process::Command::new_sidecar("segmentation")
-        .expect("Failed to create segmentation sidecar")
-        .args(&[
-            micrograph.path.unwrap(),
-            segment_dir_escaped,
-            segment_dir.join("../segments.json").to_str().unwrap().to_string()
-        ])
-        .output()
-        .expect("Failed to run segmentation");
+    // print all arguments to console
+    println!(
+        "Running segmentation with arguments: {}, {}, {}",
+        micrograph_path_escaped, segment_dir_escaped, segment_dir_json_escaped
+    );
+
+    let segmentation =
+        tauri::api::process::Command::new(crate::utils::resolve_bin_path(app, "segmentation"))
+            .current_dir(crate::utils::resolve_bin_dir(app))
+            .args(&[
+                micrograph_path_escaped,
+                segment_dir_escaped,
+                segment_dir_json_escaped,
+            ]);
+
+    println!("Running segmentation: {:?}", segmentation);
+
+    // run segmentation sidecar
+    let segmentation = segmentation.output().expect("Failed to run segmentation");
+
+    // check if segmentation was successful and panic if not with stderr
+    match segmentation.status.code() {
+        Some(0) => println!("Segmentation completed successfully"),
+        _ => panic!(
+            "Segmentation failed: stderr:{}, stdout:{}",
+            segmentation.stderr, segmentation.stdout
+        ),
+    }
 
     // deserialize segmentation output and save to vector
     let segments: Vec<SegmentationResponse> = serde_json::from_str(&segmentation.stdout)
@@ -116,38 +140,83 @@ pub async fn analyze_segments(app: &tauri::AppHandle, micrograph_id: String) {
         .join(micrograph.uuid.to_string())
         .join("segments");
 
-    // escape backslashes (windows) with forward slashes because python doesn't like backslashes
-    let segment_dir_escaped = segment_dir.to_str().unwrap().replace("\\", "/");
+    // run analysis in 50 segment batches
+    let mut segment_batch = segment_dsl::segments
+        .filter(segment_dsl::micrograph_id.eq(micrograph.uuid.clone()))
+        .filter(segment_dsl::status.eq("new"))
+        .limit(50)
+        .load::<crate::models::segment::Segment>(&mut get_connection(state.clone()).unwrap())
+        .unwrap();
 
-    // run analysis sidecar
-    let analysis = tauri::api::process::Command::new_sidecar("analysis")
-        .expect("Failed to create analysis sidecar")
-        .args(&["-d".to_string(), segment_dir_escaped])
-        .output()
-        .expect("Failed to run analysis");
+    while segment_batch.len() > 0 {
+        // run analysis sidecar
+        let analysis_command =
+            tauri::api::process::Command::new(crate::utils::resolve_bin_path(&app, "analysis"))
+                .current_dir(crate::utils::resolve_bin_dir(app))
+                .args(segment_batch.iter().map(|segment| {
+                    segment_dir
+                        .clone()
+                        .join(segment.filename.clone())
+                        .to_str()
+                        .unwrap()
+                        .to_string()
+                }));
 
-    // replace single quotes with double quotes
-    let analysis_escaped = analysis.stdout.replace("'", "\"");
+        println!("Running analysis: {:?}", analysis_command);
 
-    // parse analysis output
-    let analysis_output: Vec<AnalysisResponse> =
-        serde_json::from_str(&analysis_escaped).expect("Failed to parse analysis output");
+        let analysis_output = analysis_command.output();
 
-    // update segments in database
-    for segment in analysis_output {
-        let length = if segment.direction_a > segment.direction_b {
-            segment.direction_a
-        } else {
-            segment.direction_b
+        let analysis = match analysis_output {
+            Ok(analysis) => analysis,
+            Err(e) => {
+                println!("Failed to run analysis: {}", e);
+                return;
+            }
         };
 
-        let width = if segment.direction_a < segment.direction_b {
-            segment.direction_a
-        } else {
-            segment.direction_b
-        };
+        // replace single quotes with double quotes
+        let analysis_escaped = analysis.stdout.replace("'", "\"");
 
-        diesel::update(segment_dsl::segments.filter(segment_dsl::filename.eq(segment.path)))
+        match analysis.status.code() {
+            Some(0) => println!("Analysis completed successfully"),
+            Some(1) => println!(
+                "Analysis failed: stderr:{}, stdout:{}",
+                analysis.stderr, analysis.stdout
+            ),
+            _ => println!(
+                "Analysis failed: stderr:{}, stdout:{}",
+                analysis.stderr, analysis.stdout
+            ),
+        }
+
+        // parse analysis output
+        let analysis_output: Vec<AnalysisResponse> =
+            serde_json::from_str(&analysis_escaped).expect("Failed to parse analysis output");
+
+        // update segments in database
+        for segment in analysis_output {
+            let length = if segment.direction_a > segment.direction_b {
+                segment.direction_a
+            } else {
+                segment.direction_b
+            };
+
+            let width = if segment.direction_a < segment.direction_b {
+                segment.direction_a
+            } else {
+                segment.direction_b
+            };
+
+            let segment_filename = std::path::Path::new(&segment.path)
+                .file_name()
+                .unwrap()
+                .to_str()
+                .unwrap()
+                .to_string();
+
+            diesel::update(
+                segment_dsl::segments.filter(segment_dsl::filename.eq(segment_filename)),
+            )
             .set((
                 segment_dsl::measured_angle.eq(segment.angle),
                 segment_dsl::measured_length.eq(length),
@@ -156,6 +225,15 @@ pub async fn analyze_segments(app: &tauri::AppHandle, micrograph_id: String) {
                 segment_dsl::updated_at.eq(chrono::Utc::now().naive_utc()),
             ))
             .execute(&mut get_connection(state.clone()).unwrap())
+            .unwrap();
+        }
+
+        // fetch next batch of segments
+        segment_batch = segment_dsl::segments
+            .filter(segment_dsl::micrograph_id.eq(micrograph.uuid.clone()))
+            .filter(segment_dsl::status.eq("new"))
+            .limit(50)
+            .load::<crate::models::segment::Segment>(&mut get_connection(state.clone()).unwrap())
             .unwrap();
     }
 
