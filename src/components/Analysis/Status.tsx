@@ -14,13 +14,13 @@ const Status = ({ segments, micrograph, analysedSegments }: StatusProps) => {
     const [currentStep, setCurrentStep] = useState<{ stepNr: number, stepMessage: string }>({ stepNr: 0, stepMessage: "vorbereiten" });
 
     useEffect(() => {
-        if (micrograph.status == "new") {
+        if (micrograph.status == "Pending") {
             setCurrentStep({ stepNr: 1, stepMessage: "importiere Mikroskopaufnahme" });
-        } else if (micrograph.status == "imported") {
+        } else if (micrograph.status == "Imported") {
             setCurrentStep({ stepNr: 2, stepMessage: "segmentiere Mikroskopaufnahme" });
-        } else if (micrograph.status == "segmented" && analysedSegments !== segments.length) {
+        } else if (micrograph.status == "Segmented" && analysedSegments !== segments.length) {
             setCurrentStep({ stepNr: 3, stepMessage: "analysiere Segmente" });
-        } else if (micrograph.status == "ok") {
+        } else if (micrograph.status == "Done") {
             setCurrentStep({ stepNr: 4, stepMessage: "fertig" });
         }
     }, [micrograph, segments, analysedSegments])

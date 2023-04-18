@@ -61,7 +61,7 @@ const ImageViewer = ({ micrograph, segments }: ImageViewerProps) => {
 
     return (
         <div className="space-y-4" ref={ref}>
-            {micrograph && micrograph.status == "new" && (<div><Loading /></div>)}
+            {micrograph && micrograph.status == "Pending" && (<div><Loading /></div>)}
             {micrograph && micrograph.display_path && micrograph.width && micrograph.height && (
                 <div className="bg-gray-900 relative">
                     {hoveredSegment && (

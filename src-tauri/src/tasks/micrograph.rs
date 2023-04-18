@@ -1,7 +1,7 @@
 use crate::{data::get_connection_from_app, models::micrograph::Micrograph};
 use diesel::prelude::*;
 
-pub fn move_micrograph(app: &tauri::AppHandle, micrograph: &Micrograph) -> Result<(), String> {
+pub fn move_micrograph(app: &tauri::AppHandle, micrograph: &mut Micrograph) -> Result<(), String> {
     use crate::schema::micrographs::dsl;
 
     // create path to new micrograph
@@ -41,11 +41,20 @@ pub fn move_micrograph(app: &tauri::AppHandle, micrograph: &Micrograph) -> Resul
         .execute(&mut get_connection_from_app(app).unwrap())
         .unwrap();
 
+    // apply changes to micrograph
+    micrograph.path = Some(new_path.to_str().unwrap().to_string());
+    micrograph.file_size = Some(file_size as i32);
+
     Ok(())
 }
 
 pub fn generate_thumbnail(app: &tauri::AppHandle, micrograph: &Micrograph) -> Result<(), String> {
     use crate::schema::micrographs::dsl;
+
+    // check if micrograph has been moved
+    if micrograph.path.is_none() {
+        panic!("Micrograph has not been moved");
+    }
 
     // create path to micrograph dir
     let micrograph_dir = app

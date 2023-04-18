@@ -242,7 +242,7 @@ pub async fn analyze_segments(app: &tauri::AppHandle, micrograph_id: String) {
     // update micrograph in database
     diesel::update(dsl::micrographs.find(micrograph.uuid))
         .set((
-            dsl::status.eq("ok"),
+            dsl::status.eq(Status::Done),
             dsl::updated_at.eq(chrono::Utc::now().naive_utc()),
         ))
         .execute(&mut get_connection(state).unwrap())

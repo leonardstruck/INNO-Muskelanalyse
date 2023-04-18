@@ -16,7 +16,7 @@ const MicrographPage = () => {
 
     const { data, error, isLoading } = useSWR(`/micrographs/${id}`, () => fetcher(String(id)), {
         refreshInterval(latestData) {
-            if (latestData?.micrograph.status === "new") return 1000;
+            if (latestData?.micrograph.status === "Pending") return 1000;
             if (latestData?.segments.length ?? 0 > (latestData?.processedSegments ?? 0)) return 1000;
             return 5000;
         },
@@ -44,7 +44,7 @@ const MicrographPage = () => {
                         </div>
                     </div>
                     <Status micrograph={micrograph} segments={segments} analysedSegments={processedSegments} />
-                    {micrograph.status === "ok" && (
+                    {micrograph.status === "Done" && (
                         <div className="bg-white shadow sm:rounded-lg">
                             <div className="px-4 py-5 sm:px-6 space-y-4">
                                 <h3 className="text-lg font-medium leading-6 text-gray-900">Ergebnisse:</h3>

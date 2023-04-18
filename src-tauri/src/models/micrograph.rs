@@ -52,7 +52,7 @@ impl FromSql<Text, Sqlite> for Status {
     }
 }
 
-#[derive(Queryable, Serialize, TS, Identifiable, Insertable)]
+#[derive(Queryable, Serialize, TS, Identifiable, Insertable, Clone)]
 #[diesel(primary_key(uuid))]
 #[ts(export)]
 pub struct Micrograph {
