@@ -5,10 +5,10 @@
 To run the application you need to have the following installed:
 
 - [Node.js](https://nodejs.org/en/)
-- [Yarn](https://yarnpkg.com/en/)
+- [Yarn](https://yarnpkg.com/getting-started/install/)
 - [Rust](https://www.rust-lang.org/en-US/install.html) (we recommend installing rust using [rustup](https://rustup.rs/))
 - [Python](https://www.python.org/downloads/)
-- [OpenCV](https://opencv.org/releases.html)
+- [OpenCV](https://opencv.org/releases/)
 
 ## Codebase structure
 
