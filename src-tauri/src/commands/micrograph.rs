@@ -1,4 +1,7 @@
-use crate::data::{get_connection, PoolState};
+use crate::{
+    data::{get_connection, PoolState},
+    models::micrograph::Micrograph,
+};
 use diesel::prelude::*;
 
 #[tauri::command]
@@ -113,47 +116,46 @@ pub async fn import_micrographs(
                 display_path: None,
             };
 
-            let inserted_micrograph = diesel::insert_into(dsl::micrographs)
+            diesel::insert_into(dsl::micrographs)
                 .values(&new_micrograph)
-                .execute(&mut get_connection(state.clone()).unwrap());
+                .execute(&mut get_connection(state.clone()).unwrap())
+                .expect("Error saving new micrograph");
 
-            match inserted_micrograph {
-                Ok(_) => {
-                    let uuid = new_micrograph.uuid.clone();
+            let inserted_micrograph = dsl::micrographs
+                .filter(dsl::uuid.eq(new_micrograph.uuid.clone()))
+                .first::<Micrograph>(&mut get_connection(state.clone()).unwrap())
+                .expect("Error loading new micrograph");
 
-                    // Spawn a thread to process the micrograph
-                    tauri::async_runtime::spawn(async move {
-                        crate::tasks::micrograph::move_micrograph(&app_clone, uuid.clone());
-                        crate::tasks::micrograph::generate_thumbnail(&app_clone, uuid.clone());
-                        crate::tasks::segment::segment_micrograph(&app_clone.clone(), uuid.clone())
-                            .await;
-                        crate::tasks::segment::analyze_segments(&app_clone.clone(), uuid.clone())
-                            .await;
-                    });
+            let uuid = new_micrograph.uuid.clone();
 
-                    // If a case ID was provided, link the micrograph to the case
-                    if let Some(case_id) = case_id {
-                        use crate::models::micrograph::NewCaseMicrograph;
-                        use crate::schema::case_micrographs::dsl as cmdsl;
+            // Spawn a thread to process the micrograph
+            tauri::async_runtime::spawn(async move {
+                crate::tasks::micrograph::move_micrograph(&app_clone, &inserted_micrograph);
+                crate::tasks::micrograph::generate_thumbnail(&app_clone, &inserted_micrograph);
+                crate::tasks::segment::segment_micrograph(&app_clone.clone(), uuid.clone()).await;
+                crate::tasks::segment::analyze_segments(&app_clone.clone(), uuid.clone()).await;
+            });
 
-                        let new_case_micrograph = NewCaseMicrograph {
-                            case_id,
-                            micrograph_id: new_micrograph.uuid.clone(),
-                        };
+            // If a case ID was provided, link the micrograph to the case
+            if let Some(case_id) = case_id {
+                use crate::models::micrograph::NewCaseMicrograph;
+                use crate::schema::case_micrographs::dsl as cmdsl;
 
-                        let inserted_case_micrograph = diesel::insert_into(cmdsl::case_micrographs)
-                            .values(&new_case_micrograph)
-                            .execute(&mut get_connection(state.clone()).unwrap());
+                let new_case_micrograph = NewCaseMicrograph {
+                    case_id,
+                    micrograph_id: new_micrograph.uuid.clone(),
+                };
 
-                        match inserted_case_micrograph {
-                            Ok(_) => Ok(()),
-                            Err(e) => Err(e),
-                        }
-                    } else {
-                        Ok(())
-                    }
+                let inserted_case_micrograph = diesel::insert_into(cmdsl::case_micrographs)
+                    .values(&new_case_micrograph)
+                    .execute(&mut get_connection(state.clone()).unwrap());
+
+                match inserted_case_micrograph {
+                    Ok(_) => Ok(()),
+                    Err(e) => Err(e),
                 }
-                Err(e) => Err(e),
+            } else {
+                Ok(())
             }
         }
     }))

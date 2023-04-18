@@ -1,19 +1,8 @@
+use crate::{data::get_connection_from_app, models::micrograph::Micrograph};
 use diesel::prelude::*;
-use tauri::Manager;
 
-pub fn move_micrograph(app: &tauri::AppHandle, micrograph_id: String) {
-    use crate::data::{get_connection, PoolState};
-    use crate::models::micrograph::Micrograph;
+pub fn move_micrograph(app: &tauri::AppHandle, micrograph: &Micrograph) -> Result<(), String> {
     use crate::schema::micrographs::dsl;
-
-    // get state from app handle
-    let state = app.state::<PoolState>();
-
-    // fetch micrograph from database
-    let micrograph = dsl::micrographs
-        .filter(dsl::uuid.eq(micrograph_id))
-        .first::<Micrograph>(&mut get_connection(state.clone()).unwrap())
-        .unwrap();
 
     // create path to new micrograph
     let micograph_dir = app
@@ -23,16 +12,16 @@ pub fn move_micrograph(app: &tauri::AppHandle, micrograph_id: String) {
         .join("micrographs")
         .join(micrograph.uuid.to_string());
 
-    // create directory for new micrograph
+    // create target directory
     std::fs::create_dir_all(&micograph_dir).expect("Failed to create micrograph dir");
 
-    // check if micrograph is still in the import location
+    // verify that micrograph exists in import location
     let import_path = std::path::Path::new(&micrograph.import_path);
     if !import_path.exists() {
         panic!("Micrograph not found in import location");
     }
 
-    // get extension of micrograph
+    // get extension of micrograph and create target path
     let extension = import_path.extension().unwrap();
     let new_path = micograph_dir.join(format!("{}.{}", "original", extension.to_str().unwrap()));
 
@@ -43,52 +32,47 @@ pub fn move_micrograph(app: &tauri::AppHandle, micrograph_id: String) {
     let file_size = std::fs::metadata(&new_path).unwrap().len();
 
     // update micrograph in database
-    diesel::update(dsl::micrographs.find(micrograph.uuid))
+    diesel::update(dsl::micrographs.find(micrograph.uuid.clone()))
         .set((
             dsl::path.eq(new_path.to_str().unwrap()),
             dsl::file_size.eq(file_size as i32),
             dsl::updated_at.eq(chrono::Utc::now().naive_utc()),
         ))
-        .execute(&mut get_connection(state).unwrap())
+        .execute(&mut get_connection_from_app(app).unwrap())
         .unwrap();
+
+    Ok(())
 }
 
-pub fn generate_thumbnail(app: &tauri::AppHandle, micrograph_id: String) {
-    use crate::data::{get_connection, PoolState};
-    use crate::models::micrograph::Micrograph;
+pub fn generate_thumbnail(app: &tauri::AppHandle, micrograph: &Micrograph) -> Result<(), String> {
     use crate::schema::micrographs::dsl;
 
-    // get state from app handle
-    let state = app.state::<PoolState>();
-
-    // fetch micrograph from database
-    let micrograph = dsl::micrographs
-        .filter(dsl::uuid.eq(micrograph_id))
-        .first::<Micrograph>(&mut get_connection(state.clone()).unwrap())
-        .unwrap();
-
-    // create path to thumbnail
-    let thumbnail_path = app
+    // create path to micrograph dir
+    let micrograph_dir = app
         .path_resolver()
         .app_data_dir()
         .expect("Failed to get app data dir")
         .join("micrographs")
-        .join(micrograph.uuid.to_string())
-        .join("thumbnail.png");
+        .join(micrograph.uuid.to_string());
 
-    let file = std::fs::File::open(&micrograph.path.clone().unwrap()).unwrap();
+    // create path to thumbnail
+    let thumbnail_path = micrograph_dir.join("thumbnail.png");
+
+    let file =
+        std::fs::File::open(&micrograph.path.clone().unwrap()).expect("Failed to open micrograph");
     let reader = std::io::BufReader::new(file);
 
     let mut image_reader = image::io::Reader::new(reader)
         .with_guessed_format()
         .expect("Failed to read micrograph");
 
+    // disable image limits to allow reading of large images
     image_reader.no_limits();
 
     let image = image_reader.decode().expect("Failed to decode micrograph");
 
     // guess mime type of micrograph
-    let mime_type = mime_guess::from_path(&micrograph.path.unwrap())
+    let mime_type = mime_guess::from_path(&micrograph.path.clone().unwrap())
         .first()
         .unwrap();
 
@@ -117,13 +101,7 @@ pub fn generate_thumbnail(app: &tauri::AppHandle, micrograph_id: String) {
         .expect("Failed to save thumbnail");
 
     // create display image path
-    let display_path = app
-        .path_resolver()
-        .app_data_dir()
-        .expect("Failed to get app data dir")
-        .join("micrographs")
-        .join(micrograph.uuid.to_string())
-        .join("display.png");
+    let display_path = micrograph_dir.join("display.png");
 
     // calculate display image size
     let desired_size = 2048;
@@ -148,7 +126,7 @@ pub fn generate_thumbnail(app: &tauri::AppHandle, micrograph_id: String) {
         .expect("Failed to save display image");
 
     // update micrograph in database
-    diesel::update(dsl::micrographs.find(micrograph.uuid))
+    diesel::update(dsl::micrographs.find(micrograph.uuid.clone()))
         .set((
             dsl::thumbnail_path.eq(thumbnail_path.to_str().unwrap()),
             dsl::display_path.eq(display_path.to_str().unwrap()),
@@ -158,6 +136,8 @@ pub fn generate_thumbnail(app: &tauri::AppHandle, micrograph_id: String) {
             dsl::file_type.eq(mime_type.to_string()),
             dsl::status.eq("imported"),
         ))
-        .execute(&mut get_connection(state).unwrap())
+        .execute(&mut get_connection_from_app(app).unwrap())
         .unwrap();
+
+    Ok(())
 }

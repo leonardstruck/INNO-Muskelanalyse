@@ -48,3 +48,12 @@ pub fn get_connection(
         .get()
         .map_err(|e| format!("Could not get connection from pool: {}", e))
 }
+
+pub fn get_connection_from_app(
+    app: &tauri::AppHandle,
+) -> Result<PooledConnection<ConnectionManager<SqliteConnection>>, String> {
+    use tauri::Manager;
+
+    let state = app.state::<PoolState>();
+    get_connection(state.clone())
+}
