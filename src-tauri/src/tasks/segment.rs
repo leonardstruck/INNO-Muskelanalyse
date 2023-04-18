@@ -1,6 +1,8 @@
 use diesel::prelude::*;
 use tauri::Manager;
 
+use crate::models::micrograph::Status;
+
 pub async fn segment_micrograph(app: &tauri::AppHandle, micrograph_id: String) {
     use crate::data::{get_connection, PoolState};
     use crate::models::micrograph::Micrograph;
@@ -127,7 +129,7 @@ pub async fn analyze_segments(app: &tauri::AppHandle, micrograph_id: String) {
         .unwrap();
 
     // check if micrograph has been segmented
-    if micrograph.status != "segmented" {
+    if micrograph.status != Status::Segmented {
         return;
     }
 

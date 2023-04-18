@@ -11,8 +11,14 @@ CREATE TABLE micrographs (
   width INTEGER,
   height INTEGER,
   status TEXT CHECK (
-    status IN ('new', 'imported', 'segmented', 'error', 'ok')
-  ) NOT NULL DEFAULT 'new',
+    status IN (
+      'pending',
+      'imported',
+      'segmented',
+      'error',
+      'done'
+    )
+  ) NOT NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

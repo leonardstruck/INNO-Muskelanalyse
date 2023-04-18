@@ -105,7 +105,7 @@ pub async fn import_micrographs(
                 uuid: uuid::Uuid::new_v4().to_string(),
                 import_path: path.clone(),
                 name: file_name,
-                status: "new".to_string(),
+                status: "pending".to_string(),
 
                 file_size: None,
                 file_type: None,
