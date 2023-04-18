@@ -32,14 +32,8 @@
         "execute": true,
         "scope": [
           {
-            "name": "resources/segmentation/bin/segmentation",
-            "sidecar": true,
-            "args": true
-          },
-          {
-            "name": "resources/analysis/bin/analysis",
-            "sidecar": true,
-            "args": true
+            "name": "target/bin/**/*",
+            "sidecar": true
           }
         ]
       }
@@ -51,10 +45,6 @@
       "deb": {
         "depends": []
       },
-      "externalBin": [
-        "resources/segmentation/bin/segmentation",
-        "resources/analysis/bin/analysis"
-      ],
       "icon": [
         "icons/32x32.png",
         "icons/128x128.png",
@@ -71,14 +61,16 @@
         "providerShortName": null,
         "signingIdentity": null
       },
-      "resources": [],
       "shortDescription": "",
       "targets": "all",
       "windows": {
         "certificateThumbprint": null,
         "digestAlgorithm": "sha256",
         "timestampUrl": ""
-      }
+      },
+      "resources": [
+        "target/bin/**/*"
+      ]
     },
     "security": {
       "csp": null
