@@ -1,7 +1,7 @@
 import clsx from "clsx";
 import TechnikumLogo from "../../assets/technikum_logo.png"
 import Image from "next/image";
-import { HomeIcon, BeakerIcon, BugAntIcon } from "@heroicons/react/24/outline"
+import { HomeIcon, BeakerIcon } from "@heroicons/react/24/outline"
 
 import { useRouter } from "next/router";
 import Link from "next/link";
@@ -22,11 +22,6 @@ export const navigation: NavigationItem[] = [
         name: 'Fälle',
         href: '/cases',
         icon: BeakerIcon,
-    },
-    {
-        name: 'DEBUG',
-        href: '/debug',
-        icon: BugAntIcon
     }
 ];
 

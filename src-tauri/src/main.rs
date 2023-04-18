@@ -39,8 +39,7 @@ fn main() {
             crate::commands::micrograph::get_micrograph,
             crate::commands::micrograph::import_micrographs,
             crate::commands::segment::get_segments,
-            crate::commands::segment::get_segment,
-            crate::commands::debug::debug_segmentation,
+            crate::commands::segment::get_segment
         ])
         .plugin(tauri_plugin_window_state::Builder::default().build())
         .run(tauri::generate_context!())
