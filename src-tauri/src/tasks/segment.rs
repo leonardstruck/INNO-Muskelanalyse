@@ -1,23 +1,17 @@
 use diesel::prelude::*;
 use tauri::Manager;
 
-use crate::models::micrograph::Status;
+use crate::models::micrograph::{Micrograph, Status};
+use crate::models::segment::SegmentationResponse;
 
-pub async fn segment_micrograph(app: &tauri::AppHandle, micrograph_id: String) {
-    use crate::data::{get_connection, PoolState};
-    use crate::models::micrograph::Micrograph;
-    use crate::models::segment::SegmentationResponse;
-    use crate::schema::micrographs::dsl;
+use crate::schema::micrographs::dsl;
 
-    // get state from app handle
-    let state = app.state::<PoolState>();
+use crate::data::get_connection_from_app;
 
-    // fetch micrograph from database
-    let micrograph = dsl::micrographs
-        .filter(dsl::uuid.eq(micrograph_id))
-        .first::<Micrograph>(&mut get_connection(state.clone()).unwrap())
-        .unwrap();
-
+pub async fn segment_micrograph(
+    app: &tauri::AppHandle,
+    micrograph: &mut Micrograph,
+) -> Result<(), String> {
     // create folder for micrograph segments
     let segment_dir = app
         .path_resolver()
@@ -29,29 +23,23 @@ pub async fn segment_micrograph(app: &tauri::AppHandle, micrograph_id: String) {
 
     std::fs::create_dir_all(&segment_dir).expect("Failed to create segment dir");
 
-    // create segmentation path but replace backslashes (windows) with forward slashes
-
-    let segment_dir_escaped = segment_dir.to_str().unwrap().replace("\\", "/");
-    let segment_dir_json_escaped = segment_dir
-        .join("../segments.json")
-        .to_str()
-        .unwrap()
-        .replace("\\", "/");
-    let micrograph_path_escaped = micrograph.path.unwrap().replace("\\", "/");
+    let segment_dir_json = segment_dir.join("../segments.json");
 
     // print all arguments to console
     println!(
         "Running segmentation with arguments: {}, {}, {}",
-        micrograph_path_escaped, segment_dir_escaped, segment_dir_json_escaped
+        &micrograph.path.clone().unwrap(),
+        &segment_dir.to_str().unwrap(),
+        &segment_dir_json.to_str().unwrap()
     );
 
     let segmentation =
         tauri::api::process::Command::new(crate::utils::resolve_bin_path(app, "segmentation"))
             .current_dir(crate::utils::resolve_bin_dir(app))
             .args(&[
-                micrograph_path_escaped,
-                segment_dir_escaped,
-                segment_dir_json_escaped,
+                &micrograph.path.clone().unwrap(),
+                segment_dir.to_str().unwrap(),
+                segment_dir_json.to_str().unwrap(),
             ]);
 
     println!("Running segmentation: {:?}", segmentation);
@@ -99,24 +87,27 @@ pub async fn segment_micrograph(app: &tauri::AppHandle, micrograph_id: String) {
     // insert segments into database
     diesel::insert_into(crate::schema::segments::table)
         .values(&insertable_segments)
-        .execute(&mut get_connection(state.clone()).unwrap())
+        .execute(&mut get_connection_from_app(app).unwrap())
         .expect("Failed to insert segments into database");
 
     // update micrograph in database
-    diesel::update(dsl::micrographs.find(micrograph.uuid))
+    diesel::update(dsl::micrographs.find(micrograph.uuid.clone()))
         .set((
             dsl::status.eq("segmented"),
             dsl::updated_at.eq(chrono::Utc::now().naive_utc()),
         ))
-        .execute(&mut get_connection(state).unwrap())
+        .execute(&mut get_connection_from_app(app).unwrap())
         .unwrap();
+
+    // update micrograph status
+    micrograph.status = Status::Segmented;
+
+    Ok(())
 }
 
 pub async fn analyze_segments(app: &tauri::AppHandle, micrograph_id: String) {
     use crate::data::{get_connection, PoolState};
-    use crate::models::micrograph::Micrograph;
     use crate::models::segment::AnalysisResponse;
-    use crate::schema::micrographs::dsl;
     use crate::schema::segments::dsl as segment_dsl;
 
     // get state from app handle

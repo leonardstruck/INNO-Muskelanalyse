@@ -121,7 +121,7 @@ pub async fn import_micrographs(
                 .execute(&mut get_connection(state.clone()).unwrap())
                 .expect("Error saving new micrograph");
 
-            let mut inserted_micrograph = dsl::micrographs
+            let inserted_micrograph = dsl::micrographs
                 .filter(dsl::uuid.eq(new_micrograph.uuid.clone()))
                 .first::<Micrograph>(&mut get_connection(state.clone()).unwrap())
                 .expect("Error loading new micrograph");
@@ -134,7 +134,8 @@ pub async fn import_micrographs(
                 let mut micrograph_obj = inserted_micrograph.clone();
                 crate::tasks::micrograph::move_micrograph(&app_clone, &mut micrograph_obj);
                 crate::tasks::micrograph::generate_thumbnail(&app_clone, &mut micrograph_obj);
-                crate::tasks::segment::segment_micrograph(&app_clone.clone(), uuid.clone()).await;
+                crate::tasks::segment::segment_micrograph(&app_clone.clone(), &mut micrograph_obj)
+                    .await;
                 crate::tasks::segment::analyze_segments(&app_clone.clone(), uuid.clone()).await;
             });
 
