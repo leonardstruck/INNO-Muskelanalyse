@@ -4,7 +4,14 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        display: ["var(--font-teko)"]
+        display: ["var(--font-teko)"],
+        sans: ["var(--font-rubik)"],
+      },
+      backgroundImage: {
+        "myotube": "url('assets/myotube.png')",
+      },
+      colors: {
+        "dark-blue": "#06091A"
       }
     },
   },

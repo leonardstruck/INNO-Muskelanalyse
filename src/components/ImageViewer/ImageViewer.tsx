@@ -91,9 +91,9 @@ const ImageViewer = ({ micrograph, segments }: ImageViewerProps) => {
                 </div>
             )}
 
-            {segments && segments.length > 0 && (<Toggle onValueChange={setShowSegments} value={showSegments}>
-                <ToggleItem value={true} text="Zeige Segmente" icon={EyeIcon} />
-                <ToggleItem value={false} text="Segmente verstecken" icon={EyeSlashIcon} />
+            {segments && segments.length > 0 && (<Toggle onValueChange={(value) => setShowSegments(Boolean(value))} value={String(showSegments)}>
+                <ToggleItem value={"true"} text="Zeige Segmente" icon={EyeIcon} />
+                <ToggleItem value={"false"} text="Segmente verstecken" icon={EyeSlashIcon} />
             </Toggle>)
             }
 

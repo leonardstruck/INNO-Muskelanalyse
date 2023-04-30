@@ -6,10 +6,15 @@ import { HomeIcon, BeakerIcon } from "@heroicons/react/24/outline"
 import { useRouter } from "next/router";
 import Link from "next/link";
 
+type Icon = React.ForwardRefExoticComponent<Omit<React.SVGProps<SVGSVGElement>, "ref"> & {
+    title?: string | undefined;
+    titleId?: string | undefined;
+} & React.RefAttributes<SVGSVGElement>>
+
 type NavigationItem = {
     name: string;
     href: string;
-    icon: React.ComponentType<{ className: string }>;
+    icon: Icon
 }
 
 export const navigation: NavigationItem[] = [

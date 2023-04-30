@@ -8,7 +8,6 @@ html, body, #__next {
 }
 
 body {
-  @apply bg-gradient-to-b
-      dark:from-gray-800 dark:to-gray-900 dark:text-gray-200
-      from-gray-100 to-gray-300;
+  @apply bg-gradient-to-r
+      from-blue-950 to-dark-blue to-80% text-neutral-200;
 }

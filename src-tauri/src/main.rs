@@ -41,7 +41,6 @@ fn main() {
             crate::commands::segment::get_segments,
             crate::commands::segment::get_segment
         ])
-        .plugin(tauri_plugin_window_state::Builder::default().build())
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
