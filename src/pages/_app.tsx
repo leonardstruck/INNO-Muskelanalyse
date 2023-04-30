@@ -5,7 +5,7 @@ import '@tremor/react/dist/esm/tremor.css';
 
 import "../style.css";
 
-import { Teko } from "@next/font/google";
+import { Teko } from "next/font/google";
 
 const teko = Teko({
   variable: "--font-teko",
