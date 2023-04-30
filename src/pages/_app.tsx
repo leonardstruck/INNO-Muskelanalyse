@@ -1,8 +1,6 @@
 import type { AppProps } from "next/app";
 import Layout from "../components/layout/Layout";
 
-import '@tremor/react/dist/esm/tremor.css';
-
 import "../style.css";
 
 import { Teko } from "next/font/google";
