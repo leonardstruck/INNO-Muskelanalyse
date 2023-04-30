@@ -1,6 +1,12 @@
 {
   "name": "inno-muskelanalyse",
   "displayName": "INNO Muskelanalyse",
+  "filetypeAssociation": {
+    "name": "INNO Muskelanalyse",
+    "extensions": [
+      "inno"
+    ]
+  },
   "private": true,
   "author": "UAS Technikum Wien",
   "version": "0.0.0",

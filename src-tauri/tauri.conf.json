@@ -14,7 +14,9 @@
     "allowlist": {
       "all": false,
       "dialog": {
-        "open": true
+        "all": false,
+        "open": true,
+        "save": true
       },
       "protocol": {
         "asset": true,
