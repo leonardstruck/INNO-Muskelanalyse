@@ -1,26 +1,30 @@
 import clsx from "clsx"
-import { FolderPlusIcon, FolderOpenIcon, PencilSquareIcon } from "@heroicons/react/20/solid"
-import { version } from '../../../package.json';
+import { FolderPlusIcon, FolderOpenIcon, ClockIcon } from "@heroicons/react/24/outline"
+import packageInfo from '../../../package.json';
+
+const { version, author, displayName } = packageInfo;
 
 const Welcome = () => {
     return (
         <div className={"bg-myotube h-full w-full bg-contain bg-no-repeat bg-right"}>
             <div data-tauri-drag-region className="h-10 w-full bg-gradient-to-r from-dark-blue/40 to-white/5 backdrop-blur-md flex items-center p-4 select-none cursor-default">
-                <span data-tauri-drag-region>MyoVision</span>
+                <span data-tauri-drag-region>{displayName}</span>
             </div>
-            <div className="grid grid-cols-4 gap-4 py-6 px-4">
+            <div className="grid grid-cols-5 gap-1 py-4">
                 <Item icon={<FolderPlusIcon />}>Create a new Project</Item>
                 <Item icon={<FolderOpenIcon />}>Open Project</Item>
+                <Item icon={<ClockIcon />} disabled>Open Recent</Item>
+
             </div>
-            <span className="fixed bottom-0 text-[0.6rem] right-0 m-1 text-neutral-200 font-extralight">MyoVision v{version}</span>
+            <span className="fixed bottom-0 text-[0.54rem] right-0 m-1 text-neutral-200 font-extralight">{displayName} v{version} - {author}</span>
         </div>
     )
 }
 
-const Item = ({ children, className, icon, ...props }: React.ComponentPropsWithoutRef<"div"> & { icon?: React.ReactNode }) => {
+const Item = ({ children, className, icon, disabled, ...props }: React.ComponentPropsWithoutRef<"div"> & { icon?: React.ReactNode, disabled?: boolean }) => {
     return (
-        <div className={clsx("flex justify-between items-center px-2 py-2 text-sm font-medium rounded-md col-start-1 col-span-2 cursor-pointer select-none", "bg-white/5 backdrop-blur-md h-12 shadow-md transition-all duration-100", "hover:bg-lime-400/20 hover:shadow-lg", className)} {...props}>
-            {children}{icon && <div className="w-6 h-6">{icon}</div>}
+        <div className={clsx("flex gap-4 items-center px-6 text-sm font-medium  col-start-1 col-span-3 select-none h-16", "bg-gradient-to-r from-white/5 to-transparent h-12 transition-colors duration-100", !disabled && "hover:from-lime-400/20 cursor-pointer", disabled && " brightness-50 cursor-not-allowed", className)} {...props}>
+            {icon && <div className="w-5 h-5">{icon}</div>}{children}
         </div>
     )
 }
