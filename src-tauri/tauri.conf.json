@@ -42,7 +42,7 @@
       "window": {
         "all": false,
         "center": false,
-        "close": false,
+        "close": true,
         "create": false,
         "hide": false,
         "maximize": false,
@@ -121,8 +121,7 @@
         "width": 600,
         "url": "windows/welcome",
         "title": "Welcome",
-        "titleBarStyle": "Overlay",
-        "hiddenTitle": true
+        "decorations": false
       }
     ]
   }
