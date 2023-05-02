@@ -121,7 +121,8 @@
         "width": 600,
         "url": "windows/welcome",
         "title": "Welcome",
-        "decorations": false
+        "titleBarStyle": "Overlay",
+        "hiddenTitle": true
       }
     ]
   }

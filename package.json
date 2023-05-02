@@ -1,6 +1,7 @@
 {
   "name": "inno-muskelanalyse",
   "displayName": "INNO Muskelanalyse",
+  "homepage": "https://www.technikum-wien.at",
   "filetypeAssociation": {
     "name": "INNO Muskelanalyse",
     "extensions": [

@@ -2,12 +2,12 @@ import clsx from "clsx"
 import { FolderPlusIcon, FolderOpenIcon, ClockIcon } from "@heroicons/react/24/outline"
 import packageInfo from '../../../package.json';
 
-const { version, author, displayName, filetypeAssociation } = packageInfo;
+const { version, author, displayName, filetypeAssociation, homepage } = packageInfo;
 
 const Welcome = () => {
     return (
         <div className={"bg-myotube h-full w-full bg-contain bg-no-repeat bg-right"}>
-            <div data-tauri-drag-region className="h-10 w-full bg-gradient-to-r from-dark-blue/40 to-white/5 backdrop-blur-md flex items-center p-4 select-none cursor-default">
+            <div data-tauri-drag-region className="h-7 w-full bg-gradient-to-r from-dark-blue/40 to-white/5 backdrop-blur-md flex items-center justify-center select-none cursor-default text-sm">
                 <span data-tauri-drag-region>{displayName}</span>
             </div>
             <div className="grid grid-cols-5 gap-1 py-4">
@@ -16,7 +16,7 @@ const Welcome = () => {
                 <Item icon={<ClockIcon />} disabled>Open Recent</Item>
 
             </div>
-            <span className="fixed bottom-0 text-[0.54rem] right-0 m-1 text-neutral-200 font-extralight">{displayName} v{version} - {author}</span>
+            <span className="fixed bottom-0 text-[0.54rem] right-0 m-1 text-neutral-200 font-extralight">{displayName} v{version} - <a href={homepage} target="_blank">{author}</a></span>
         </div>
     )
 }
