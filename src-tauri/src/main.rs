@@ -7,6 +7,7 @@ use tauri::Manager;
 
 mod commands;
 mod menu;
+mod migrations;
 mod models;
 mod schema;
 mod state;

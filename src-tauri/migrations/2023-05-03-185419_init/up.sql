@@ -2,7 +2,6 @@
 CREATE TABLE micrographs (
     uuid TEXT PRIMARY KEY NOT NULL,
     name TEXT NOT NULL,
-    path TEXT,
     import_path TEXT NOT NULL,
     thumbnail_img BLOB,
     display_img BLOB,

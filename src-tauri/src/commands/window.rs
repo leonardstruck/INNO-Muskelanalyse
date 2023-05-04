@@ -24,7 +24,7 @@ pub async fn open_project<R: Runtime>(
     let id = Uuid::new_v4();
 
     // add window to windows
-    let new_window = WindowState {
+    let mut new_window = WindowState {
         id,
         project_path: path.clone().into(),
         file_name: {
@@ -39,15 +39,18 @@ pub async fn open_project<R: Runtime>(
         },
     };
 
+    // run diesel migrations
+    match crate::migrations::run_migrations(new_window.connection.as_mut().unwrap()) {
+        Ok(_) => {}
+        Err(error) => return Err(format!("The project file is corrupted: {}", error)),
+    }
+
     // open new window
-    let _new_window = tauri::WindowBuilder::new(
-        &app,
-        id.to_string(),
-        tauri::WindowUrl::App("windows/default".into()),
-    )
-    .title(format!("Project: {}", new_window.file_name))
-    .build()
-    .unwrap();
+    let _new_window =
+        tauri::WindowBuilder::new(&app, id.to_string(), tauri::WindowUrl::App("main".into()))
+            .title(format!("Project: {}", new_window.file_name))
+            .build()
+            .unwrap();
 
     state.windows.insert(id, path, new_window);
 

@@ -1,6 +1,6 @@
 import clsx from "clsx"
 import { FolderPlusIcon, FolderOpenIcon, ClockIcon } from "@heroicons/react/24/outline"
-import packageInfo from '../../../package.json';
+import packageInfo from '../../package.json';
 import { XMarkIcon } from "@heroicons/react/20/solid";
 import { invoke } from "@tauri-apps/api/tauri";
 
