@@ -6,6 +6,7 @@ import { Teko, Rubik } from "next/font/google";
 import clsx from "clsx";
 import { NextPage } from "next";
 import MainLayout from "../components/layouts/main";
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 const rubik = Rubik({
   variable: "--font-rubik",
@@ -26,10 +27,13 @@ type AppPropsWithLayout = AppProps & {
 export default function MyApp({ Component, pageProps }: AppPropsWithLayout) {
   // use the layout defined at the page level, if available
   const getLayout = Component.getLayout ?? ((page) => <MainLayout>{page}</MainLayout>)
+  const queryClient = new QueryClient()
 
   return (
-    <div className={clsx(rubik.variable, "h-full font-sans")}>
-      {getLayout(<Component {...pageProps} />)}
-    </div>
+    <QueryClientProvider client={queryClient}>
+      <div className={clsx(rubik.variable, "h-full font-sans")}>
+        {getLayout(<Component {...pageProps} />)}
+      </div>
+    </QueryClientProvider>
   );
 }

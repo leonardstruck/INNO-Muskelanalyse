@@ -85,7 +85,7 @@ const Sidebar = () => {
                                                 <ul role="list" className="-mx-2 space-y-1">
                                                     {currentNavigation.map((item) => (
                                                         <li key={item.name}>
-                                                            <a
+                                                            <Link
                                                                 href={item.href}
                                                                 className={clsx(
                                                                     item.current
@@ -93,10 +93,11 @@ const Sidebar = () => {
                                                                         : 'text-gray-400 hover:text-white hover:bg-gray-800',
                                                                     'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-medium'
                                                                 )}
+                                                                onClick={() => setSidebarOpen(false)}
                                                             >
                                                                 <item.icon className="h-6 w-6 shrink-0" aria-hidden="true" />
                                                                 {item.name}
-                                                            </a>
+                                                            </Link>
                                                         </li>
                                                     ))}
                                                 </ul>

@@ -36,7 +36,9 @@ fn main() {
         })
         .manage(state::MutableAppState(Default::default()))
         .invoke_handler(tauri::generate_handler![
-            crate::commands::window::open_project
+            crate::commands::window::open_project,
+            crate::commands::micrographs::get_micrographs,
+            crate::commands::micrographs::import_micrographs,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

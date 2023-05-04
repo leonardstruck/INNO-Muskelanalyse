@@ -2,18 +2,19 @@ use std::path::PathBuf;
 
 use crate::schema::micrographs;
 use chrono::NaiveDateTime;
-use diesel::{Identifiable, Queryable};
+use diesel::{Identifiable, Insertable, Queryable};
+use serde::Serialize;
 use tauri::AppHandle;
 use ts_rs::TS;
 
-#[derive(Queryable, Debug, Identifiable)]
+#[derive(Queryable, Debug, Identifiable, Serialize)]
 #[diesel(primary_key(uuid))]
 pub struct Micrograph {
     pub uuid: String,
     pub name: String,
     pub import_path: String,
-    pub thumbnail_img: Option<Vec<u8>>,
-    pub display_img: Option<Vec<u8>>,
+    pub thumbnail_img: Vec<u8>,
+    pub display_img: Vec<u8>,
     pub width: Option<i32>,
     pub height: Option<i32>,
     pub status: String,
@@ -21,7 +22,22 @@ pub struct Micrograph {
     pub updated_at: NaiveDateTime,
 }
 
-#[derive(TS)]
+#[derive(Insertable, Debug, Serialize)]
+#[diesel(table_name = micrographs)]
+pub struct NewMicrograph {
+    pub uuid: String,
+    pub name: String,
+    pub import_path: String,
+    pub thumbnail_img: Vec<u8>,
+    pub display_img: Vec<u8>,
+    pub width: Option<i32>,
+    pub height: Option<i32>,
+    pub status: String,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
+}
+
+#[derive(TS, Serialize)]
 #[ts(export)]
 pub struct PortableMicrograph {
     pub uuid: String,
@@ -54,7 +70,7 @@ impl Micrograph {
 
     fn get_thumbnail_path(&self, app: &AppHandle) -> Option<std::path::PathBuf> {
         // check if thumbnail exists
-        if self.thumbnail_img.is_none() {
+        if self.thumbnail_img.is_empty() {
             return None;
         }
 
@@ -72,14 +88,14 @@ impl Micrograph {
         }
 
         // load thumbnail from database and write to file
-        std::fs::write(&path, &self.thumbnail_img.clone().unwrap()).unwrap();
+        std::fs::write(&path, &self.thumbnail_img.clone()).unwrap();
 
         Some(path)
     }
 
     fn get_display_path(&self, app: &AppHandle) -> Option<std::path::PathBuf> {
         // check if display image exists
-        if self.display_img.is_none() {
+        if self.display_img.is_empty() {
             return None;
         }
 
@@ -97,7 +113,7 @@ impl Micrograph {
         }
 
         // load display image from database and write to file
-        std::fs::write(&path, &self.display_img.clone().unwrap()).unwrap();
+        std::fs::write(&path, &self.display_img.clone()).unwrap();
 
         Some(path)
     }
