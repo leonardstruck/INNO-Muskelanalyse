@@ -2,6 +2,7 @@ import clsx from "clsx"
 import { FolderPlusIcon, FolderOpenIcon, ClockIcon } from "@heroicons/react/24/outline"
 import packageInfo from '../../../package.json';
 import { XMarkIcon } from "@heroicons/react/20/solid";
+import { invoke } from "@tauri-apps/api/tauri";
 
 const { version, author, displayName, filetypeAssociation, homepage } = packageInfo;
 
@@ -41,7 +42,9 @@ const handle_create_project = async () => {
     })
 
     if (result) {
-        console.log(result);
+        await invoke("open_project", { path: result }).catch(err => {
+            dialog.message(err, { type: "error", title: "Something went wrong" })
+        })
     }
 }
 
@@ -56,7 +59,9 @@ const handle_open_project = async () => {
     })
 
     if (result) {
-        console.log(result);
+        await invoke("open_project", { path: result }).catch(err => {
+            dialog.message(err, { type: "error", title: "Something went wrong" })
+        })
     }
 }
 

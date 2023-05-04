@@ -3,43 +3,42 @@
     windows_subsystem = "windows"
 )]
 
-mod commands;
-mod data;
-mod models;
-mod schema;
-mod tasks;
-mod utils;
-
 use tauri::Manager;
 
-use data::PoolState;
+mod commands;
+mod menu;
+mod models;
+mod schema;
+mod state;
+mod utils;
 
 fn main() {
     tauri::Builder::default()
-        .manage(PoolState)
-        .setup(|app| {
-            let app_handle = app.handle();
+        .menu(menu::create_menu())
+        .on_menu_event(menu::menu_event_handler)
+        .on_window_event(|event| {
+            use tauri::WindowEvent;
 
-            // get connection pool and store in state
-            let pool = data::get_connection_pool(app_handle);
-            let mut connection = pool.get().unwrap();
-            app.manage(PoolState(pool));
+            match event.event() {
+                WindowEvent::CloseRequested { .. } => {
+                    // get state
+                    let app = event.window().app_handle();
+                    let state = app.state::<state::MutableAppState>();
 
-            // run migrations
-            data::run_migrations(&mut connection);
+                    // lock state
+                    let mut state = state.0.lock().unwrap();
 
-            Ok(())
+                    let id = uuid::Uuid::parse_str(event.window().label()).unwrap();
+
+                    // remove window from windows
+                    state.windows.remove(&id);
+                }
+                _ => {}
+            }
         })
+        .manage(state::MutableAppState(Default::default()))
         .invoke_handler(tauri::generate_handler![
-            crate::commands::case::get_cases,
-            crate::commands::case::get_case,
-            crate::commands::case::create_case,
-            crate::commands::case::delete_case,
-            crate::commands::micrograph::get_micrographs,
-            crate::commands::micrograph::get_micrograph,
-            crate::commands::micrograph::import_micrographs,
-            crate::commands::segment::get_segments,
-            crate::commands::segment::get_segment
+            crate::commands::window::open_project
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
