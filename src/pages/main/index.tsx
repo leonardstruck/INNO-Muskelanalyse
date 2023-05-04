@@ -1,10 +1,6 @@
-import { useRouter } from "next/router";
-
 const Default = () => {
-    const { query } = useRouter();
     return (
-        <div>Main Window: {query["id"]}</div>
+        <div>This is where the dashboard will be displayed</div>
     )
 }
-
 export default Default;

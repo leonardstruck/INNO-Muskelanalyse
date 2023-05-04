@@ -4,12 +4,8 @@ import "../style.css";
 
 import { Teko, Rubik } from "next/font/google";
 import clsx from "clsx";
-
-const teko = Teko({
-  variable: "--font-teko",
-  subsets: ["latin"],
-  weight: "400"
-})
+import { NextPage } from "next";
+import MainLayout from "../components/layouts/main";
 
 const rubik = Rubik({
   variable: "--font-rubik",
@@ -17,7 +13,23 @@ const rubik = Rubik({
   weight: "variable"
 })
 
-// This default export is required in a new `pages/_app.js` file.
-export default function MyApp({ Component, pageProps }: AppProps) {
-  return <div className={clsx(teko.variable, rubik.variable, "h-full font-sans")}><Component {...pageProps} /></div>;
+
+export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
+  getLayout?: (page: React.ReactElement) => React.ReactNode
+}
+
+type AppPropsWithLayout = AppProps & {
+  Component: NextPageWithLayout
+}
+
+
+export default function MyApp({ Component, pageProps }: AppPropsWithLayout) {
+  // use the layout defined at the page level, if available
+  const getLayout = Component.getLayout ?? ((page) => <MainLayout>{page}</MainLayout>)
+
+  return (
+    <div className={clsx(rubik.variable, "h-full font-sans")}>
+      {getLayout(<Component {...pageProps} />)}
+    </div>
+  );
 }
