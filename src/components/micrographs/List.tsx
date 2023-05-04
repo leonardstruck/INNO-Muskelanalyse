@@ -22,9 +22,11 @@ const List = ({ micrographs }: ListProps) => {
 }
 
 const statuses = {
-    Complete: 'text-green-700 bg-green-50 ring-green-600/20',
-    'pending': 'text-gray-600 bg-gray-50 ring-gray-500/10',
-    Archived: 'text-yellow-800 bg-yellow-50 ring-yellow-600/20',
+    Done: 'text-green-700 bg-green-50 ring-green-600/20',
+    Pending: 'text-gray-600 bg-gray-50 ring-gray-500/10',
+    Segmented: 'text-yellow-800 bg-yellow-50 ring-yellow-600/20',
+    Imported: 'text-blue-800 bg-blue-50 ring-blue-600/20',
+    Error: 'text-red-800 bg-red-50 ring-red-600/20',
 }
 
 type ListItemProps = {

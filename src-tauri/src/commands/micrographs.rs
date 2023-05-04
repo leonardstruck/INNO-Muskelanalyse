@@ -71,7 +71,7 @@ pub async fn import_micrographs(
                 let path = std::path::Path::new(&file);
                 path.file_stem().unwrap().to_str().unwrap().into()
             },
-            status: "pending".into(),
+            status: crate::models::micrographs::Status::Pending,
             uuid: Uuid::new_v4().to_string(),
             display_img: Vec::new(),
             thumbnail_img: Vec::new(),

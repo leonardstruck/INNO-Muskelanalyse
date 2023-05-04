@@ -2,7 +2,14 @@ use std::path::PathBuf;
 
 use crate::schema::micrographs;
 use chrono::NaiveDateTime;
-use diesel::{Identifiable, Insertable, Queryable};
+use diesel::{
+    backend::RawValue,
+    deserialize::FromSql,
+    serialize::{Output, ToSql},
+    sql_types::Text,
+    sqlite::Sqlite,
+    AsExpression, FromSqlRow, Identifiable, Insertable, Queryable,
+};
 use serde::Serialize;
 use tauri::AppHandle;
 use ts_rs::TS;
@@ -17,7 +24,7 @@ pub struct Micrograph {
     pub display_img: Vec<u8>,
     pub width: Option<i32>,
     pub height: Option<i32>,
-    pub status: String,
+    pub status: Status,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
 }
@@ -32,7 +39,7 @@ pub struct NewMicrograph {
     pub display_img: Vec<u8>,
     pub width: Option<i32>,
     pub height: Option<i32>,
-    pub status: String,
+    pub status: Status,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
 }
@@ -47,7 +54,7 @@ pub struct PortableMicrograph {
     pub display_img: Option<PathBuf>,
     pub width: Option<i32>,
     pub height: Option<i32>,
-    pub status: String,
+    pub status: Status,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
 }
@@ -62,7 +69,7 @@ impl Micrograph {
             display_img: self.get_display_path(app),
             width: self.width,
             height: self.height,
-            status: self.status.clone(),
+            status: self.status,
             created_at: self.created_at,
             updated_at: self.updated_at,
         }
@@ -88,7 +95,7 @@ impl Micrograph {
         }
 
         // load thumbnail from database and write to file
-        std::fs::write(&path, &self.thumbnail_img.clone()).unwrap();
+        std::fs::write(&path, self.thumbnail_img.clone()).unwrap();
 
         Some(path)
     }
@@ -113,8 +120,47 @@ impl Micrograph {
         }
 
         // load display image from database and write to file
-        std::fs::write(&path, &self.display_img.clone()).unwrap();
+        std::fs::write(&path, self.display_img.clone()).unwrap();
 
         Some(path)
+    }
+}
+
+#[derive(AsExpression, FromSqlRow, Debug, Copy, Clone, Serialize, TS, PartialEq)]
+#[ts(export)]
+#[diesel(sql_type = Text)]
+pub enum Status {
+    Pending,
+    Imported,
+    Segmented,
+    Error,
+    Done,
+}
+
+impl ToSql<Text, Sqlite> for Status {
+    fn to_sql<'b>(&'b self, out: &mut Output<'b, '_, Sqlite>) -> diesel::serialize::Result {
+        let s = match self {
+            Status::Pending => "pending",
+            Status::Imported => "imported",
+            Status::Segmented => "segmented",
+            Status::Error => "error",
+            Status::Done => "done",
+        };
+
+        ToSql::<Text, Sqlite>::to_sql(s, out)
+    }
+}
+
+impl FromSql<Text, Sqlite> for Status {
+    fn from_sql(bytes: RawValue<Sqlite>) -> diesel::deserialize::Result<Self> {
+        let s = <String as FromSql<Text, Sqlite>>::from_sql(bytes)?;
+        match s.as_str() {
+            "pending" => Ok(Status::Pending),
+            "imported" => Ok(Status::Imported),
+            "segmented" => Ok(Status::Segmented),
+            "error" => Ok(Status::Error),
+            "done" => Ok(Status::Done),
+            _ => Err("Unrecognized enum variant".into()),
+        }
     }
 }
