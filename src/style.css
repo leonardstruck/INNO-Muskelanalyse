@@ -8,6 +8,10 @@ html, body, #__next {
 }
 
 body {
+  @apply bg-gray-950 text-neutral-200
+}
+
+.gradient-bg {
   @apply bg-gradient-to-r
-      from-blue-950 to-dark-blue to-80% text-neutral-200;
+      from-blue-950 to-dark-blue to-80% ;
 }

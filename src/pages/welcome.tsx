@@ -8,17 +8,19 @@ const { version, author, displayName, filetypeAssociation, homepage } = packageI
 
 const Welcome: NextPageWithLayout = () => {
     return (
-        <div className={"bg-myotube h-full w-full bg-contain bg-no-repeat bg-right"}>
-            <div data-tauri-drag-region className="h-12 px-6 w-full bg-gradient-to-r from-dark-blue/40 to-white/5 backdrop-blur-md flex items-center select-none cursor-default text-xl text-cyan-500">
-                <span data-tauri-drag-region>{displayName}</span>
+        <div className="gradient-bg h-full w-full">
+            <div className={"bg-myotube h-full w-full bg-contain bg-no-repeat bg-right"}>
+                <div data-tauri-drag-region className="h-12 px-6 w-full bg-gradient-to-r from-dark-blue/40 to-white/5 backdrop-blur-md flex items-center select-none cursor-default text-xl text-cyan-500">
+                    <span data-tauri-drag-region>{displayName}</span>
+                </div>
+                <div className="grid grid-cols-5 gap-1 py-4">
+                    <Item Icon={FilePlusIcon} onClick={handle_create_project}>Create a new Project</Item>
+                    <Item Icon={FileSearchIcon} onClick={handle_open_project}>Open Project</Item>
+                    <Item Icon={FileClockIcon} disabled>Open Recent</Item>
+                    <Item Icon={XIcon} onClick={handle_close_window}>Close</Item>
+                </div>
+                <span className="fixed bottom-0 text-[0.54rem] right-0 m-1 text-cyan-500 font-extralight">{displayName} v{version} - <a href={homepage} target="_blank">{author}</a></span>
             </div>
-            <div className="grid grid-cols-5 gap-1 py-4">
-                <Item Icon={FilePlusIcon} onClick={handle_create_project}>Create a new Project</Item>
-                <Item Icon={FileSearchIcon} onClick={handle_open_project}>Open Project</Item>
-                <Item Icon={FileClockIcon} disabled>Open Recent</Item>
-                <Item Icon={XIcon} onClick={handle_close_window}>Close</Item>
-            </div>
-            <span className="fixed bottom-0 text-[0.54rem] right-0 m-1 text-cyan-500 font-extralight">{displayName} v{version} - <a href={homepage} target="_blank">{author}</a></span>
         </div>
     )
 }

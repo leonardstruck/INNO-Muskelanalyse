@@ -2,6 +2,10 @@ import { invoke } from "@tauri-apps/api/tauri";
 import { PortableMicrograph } from "../../../src-tauri/bindings/PortableMicrograph"
 import { useMutation, useQuery } from "@tanstack/react-query";
 import EmptyState from "../../components/micrographs/EmptyState";
+import { Tab } from "@headlessui/react";
+import List from "../../components/micrographs/List";
+import clsx from "clsx";
+import { LayoutGrid, LayoutList } from "lucide-react";
 
 const MicrographsPage = () => {
     const { data } = useQuery(["micrographs"], micrographFetcher);
@@ -22,14 +26,28 @@ const MicrographsPage = () => {
     }
 
     return (
-        <div>
-            {data.map((micrograph) => {
-                return (
-                    <div key={micrograph.uuid}>
-                        {micrograph.uuid}
-                    </div>
-                )
-            })}
+        <Tab.Group>
+            <Tab.List className="flex justify-end">
+                <Tab>{({ selected }) => (<TabItem {...{ selected }}><LayoutList className="h-4" /></TabItem>)}</Tab>
+                <Tab>{({ selected }) => (<TabItem {...{ selected }}><LayoutGrid className="h-4" /></TabItem>)}</Tab>
+            </Tab.List>
+            <Tab.Panels className={"mt-4"}>
+                <Tab.Panel><List micrographs={data} /></Tab.Panel>
+                <Tab.Panel>Grid View</Tab.Panel>
+            </Tab.Panels>
+        </Tab.Group>
+    )
+}
+
+type TabProps = {
+    children: React.ReactNode,
+    selected: boolean
+}
+
+const TabItem = ({ children, selected }: TabProps) => {
+    return (
+        <div className={clsx(selected && "bg-gray-100", "text-gray-600 rounded-md px-2 py-2 text-sm font-medium")}>
+            {children}
         </div>
     )
 }
