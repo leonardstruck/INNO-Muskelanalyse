@@ -38,6 +38,10 @@ pub fn menu_event_handler(event: WindowMenuEvent) {
             FileDialogBuilder::new()
                 .add_filter(file_association.name.clone(), &extensions)
                 .save_file(move |path| {
+                    if path.is_none() {
+                        return;
+                    }
+
                     match tauri::async_runtime::block_on(crate::commands::window::open_project(
                         event.window().app_handle(),
                         event.window().state(),
@@ -64,6 +68,10 @@ pub fn menu_event_handler(event: WindowMenuEvent) {
             FileDialogBuilder::new()
                 .add_filter(file_association.name.clone(), &extensions)
                 .pick_file(move |path| {
+                    if path.is_none() {
+                        return;
+                    }
+
                     match tauri::async_runtime::block_on(crate::commands::window::open_project(
                         event.window().app_handle(),
                         event.window().state(),
