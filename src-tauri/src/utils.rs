@@ -14,7 +14,7 @@ pub fn resolve_bin_name(name: &str) -> String {
     let name = if cfg!(target_os = "windows") {
         format!(".\\{}.exe", name)
     } else {
-        format!("./{}", name.to_string())
+        format!("./{}", name)
     };
 
     name

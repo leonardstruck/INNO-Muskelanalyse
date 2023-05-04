@@ -19,21 +19,18 @@ fn main() {
         .on_window_event(|event| {
             use tauri::WindowEvent;
 
-            match event.event() {
-                WindowEvent::CloseRequested { .. } => {
-                    // get state
-                    let app = event.window().app_handle();
-                    let state = app.state::<state::MutableAppState>();
+            if let WindowEvent::CloseRequested { .. } = event.event() {
+                // get state
+                let app = event.window().app_handle();
+                let state = app.state::<state::MutableAppState>();
 
-                    // lock state
-                    let mut state = state.0.lock().unwrap();
+                // lock state
+                let mut state = state.0.lock().unwrap();
 
-                    let id = uuid::Uuid::parse_str(event.window().label()).unwrap();
+                let id = uuid::Uuid::parse_str(event.window().label()).unwrap();
 
-                    // remove window from windows
-                    state.windows.remove(&id);
-                }
-                _ => {}
+                // remove window from windows
+                state.windows.remove(&id);
             }
         })
         .manage(state::MutableAppState(Default::default()))

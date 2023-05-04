@@ -51,7 +51,7 @@ pub async fn open_project<R: Runtime>(
 
     state.windows.insert(id, path, new_window);
 
-    if app.windows().get("welcome") != None {
+    if app.windows().get("welcome").is_some() {
         app.windows().get("welcome").unwrap().close().unwrap();
     }
 

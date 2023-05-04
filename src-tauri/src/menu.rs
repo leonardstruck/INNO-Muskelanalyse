@@ -4,7 +4,7 @@ use tauri::{CustomMenuItem, Menu, Submenu, WindowMenuEvent};
 struct Payload {}
 
 pub fn create_menu() -> Menu {
-    let menu = Menu::new()
+    Menu::new()
         .add_submenu(Submenu::new(
             "App",
             Menu::new().add_item(CustomMenuItem::new("quit", "Quit")),
@@ -14,9 +14,7 @@ pub fn create_menu() -> Menu {
             Menu::new()
                 .add_item(CustomMenuItem::new("new-project", "New Project"))
                 .add_item(CustomMenuItem::new("open-project", "Open Project")),
-        ));
-
-    menu
+        ))
 }
 
 pub fn menu_event_handler(event: WindowMenuEvent) {

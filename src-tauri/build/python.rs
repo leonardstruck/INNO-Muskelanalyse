@@ -147,8 +147,8 @@ block_cipher = None
                 )
             "#,
                 target_name,
-                path.join("main.py").to_str().unwrap().replace("\\", "/"),
-                path.to_str().unwrap().replace("\\", "/")
+                path.join("main.py").to_str().unwrap().replace('\\', "/"),
+                path.to_str().unwrap().replace('\\', "/")
             )
             .as_str(),
         );
@@ -221,11 +221,8 @@ block_cipher = None
 
     // collect
     spec_content.push_str(
-        format!(
-            r#"
-coll = COLLECT("#
-        )
-        .as_str(),
+        r#"
+coll = COLLECT("#,
     );
     for path in paths.clone() {
         let path_binding = path.clone();
@@ -250,16 +247,13 @@ coll = COLLECT("#
     }
 
     spec_content.push_str(
-        format!(
-            r#"
+        r#"
     strip=False,
     upx=True,
     upx_exclude=[],
     name='python'
 )
-            "#
-        )
-        .as_str(),
+            "#,
     );
 
     // write out spec_content to spec_file
@@ -273,7 +267,7 @@ coll = COLLECT("#
         .arg("--distpath")
         .arg(target_dir.clone())
         .arg("--workpath")
-        .arg(target_dir.clone().join("build"))
+        .arg(target_dir.join("build"))
         .arg("-y")
         .arg(spec_file);
 

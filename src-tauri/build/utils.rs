@@ -7,7 +7,7 @@ pub fn resolve_dependencies() {
         .output();
 
     // check if command was successful
-    if !output.is_ok() {
+    if output.is_err() {
         cargo_emit::warning!("pyinstaller not found, installing it now");
 
         // install pyinstaller
