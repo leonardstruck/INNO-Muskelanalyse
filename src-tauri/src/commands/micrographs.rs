@@ -28,6 +28,7 @@ pub async fn get_micrographs(
 
     // get micrographs
     let results = micrographs
+        .order(created_at.desc())
         .load::<Micrograph>(connection)
         .expect("Error loading micrographs");
 

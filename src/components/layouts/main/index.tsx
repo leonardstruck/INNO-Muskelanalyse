@@ -11,7 +11,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
         <>
             <div className="h-full">
                 <Sidebar />
-                <main className="py-10 lg:pl-72 h-full">
+                <main className="py-10 lg:pl-72 h-full overflow-y-auto">
                     <div className="px-4 sm:px-6 lg:px-8 h-full">{children}</div>
                 </main>
             </div>

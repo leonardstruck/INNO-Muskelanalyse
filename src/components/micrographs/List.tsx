@@ -3,16 +3,17 @@ import { PortableMicrograph } from "../../../src-tauri/bindings/PortableMicrogra
 import { MoreVertical } from "lucide-react";
 import { Fragment } from "react";
 import clsx from "clsx";
+import { useAutoAnimate } from "@formkit/auto-animate/react"
 
 type ListProps = {
     micrographs: PortableMicrograph[]
 }
 
 const List = ({ micrographs }: ListProps) => {
-    console.log(micrographs)
+    const [animationParent] = useAutoAnimate();
     return (
         <div>
-            <ul role="list" className="divide-y divide-gray-100">
+            <ul role="list" className="divide-y divide-gray-700" ref={animationParent}>
                 {micrographs.map((micrograph) => (
                     <ListItem key={micrograph.uuid} micrograph={micrograph} />
                 ))}

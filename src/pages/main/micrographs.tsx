@@ -6,6 +6,7 @@ import { Tab } from "@headlessui/react";
 import List from "../../components/micrographs/List";
 import clsx from "clsx";
 import { LayoutGrid, LayoutList } from "lucide-react";
+import { Button } from "../../components/ui/button";
 
 const MicrographsPage = () => {
     const { data } = useQuery(["micrographs"], micrographFetcher);
@@ -27,9 +28,14 @@ const MicrographsPage = () => {
 
     return (
         <Tab.Group>
-            <Tab.List className="flex justify-end">
-                <Tab>{({ selected }) => (<TabItem {...{ selected }}><LayoutList className="h-4" /></TabItem>)}</Tab>
-                <Tab>{({ selected }) => (<TabItem {...{ selected }}><LayoutGrid className="h-4" /></TabItem>)}</Tab>
+            <Tab.List className="flex justify-between">
+                <div>
+                    <Button variant={"secondary"} onClick={() => mutate()}>Import Micrograph</Button>
+                </div>
+                <div>
+                    <Tab>{({ selected }) => (<TabItem {...{ selected }}><LayoutList className="h-4" /></TabItem>)}</Tab>
+                    <Tab>{({ selected }) => (<TabItem {...{ selected }}><LayoutGrid className="h-4" /></TabItem>)}</Tab>
+                </div>
             </Tab.List>
             <Tab.Panels className={"mt-4"}>
                 <Tab.Panel><List micrographs={data} /></Tab.Panel>
