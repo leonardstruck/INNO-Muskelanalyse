@@ -88,3 +88,32 @@ pub async fn import_micrographs(
 
     Ok(())
 }
+
+#[tauri::command]
+pub async fn delete_micrograph(
+    app: tauri::AppHandle,
+    window: tauri::Window,
+    id: uuid::Uuid,
+) -> Result<(), String> {
+    use crate::schema::micrographs::dsl::*;
+
+    // get window id
+    let window_id = Uuid::parse_str(window.label()).unwrap();
+
+    // get state
+    let state = app.state::<crate::state::MutableAppState>();
+    let mut state = state.0.lock().unwrap();
+
+    // get window
+    let window = state.windows.get_mut(&window_id).unwrap();
+
+    // get connection
+    let connection = window.connection.as_mut().unwrap();
+
+    // delete micrograph
+    diesel::delete(micrographs.filter(uuid.eq(id.to_string())))
+        .execute(connection)
+        .expect("Error deleting micrograph");
+
+    Ok(())
+}

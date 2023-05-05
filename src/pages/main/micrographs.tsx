@@ -9,8 +9,17 @@ import { LayoutGrid, LayoutList } from "lucide-react";
 import { Button } from "../../components/ui/button";
 
 const MicrographsPage = () => {
-    const { data } = useQuery(["micrographs"], micrographFetcher);
-    const { mutate } = useMutation(["import_micrographs"], importMicrographs);
+    const { data, refetch } = useQuery(["micrographs"], micrographFetcher);
+    const { mutate: mutate_import } = useMutation(["import_micrographs"], importMicrographs, {
+        onSuccess: () => {
+            refetch();
+        }
+    });
+    const { mutate: mutate_delete } = useMutation(["delete_micrograph"], deleteMicrograph, {
+        onSuccess: () => {
+            refetch();
+        }
+    });
 
     if (!data) {
         return (
@@ -21,7 +30,7 @@ const MicrographsPage = () => {
     if (data.length === 0) {
         return (
             <div className="flex justify-center items-center h-full">
-                <EmptyState onImport={mutate} />
+                <EmptyState onImport={mutate_import} />
             </div>
         )
     }
@@ -30,7 +39,7 @@ const MicrographsPage = () => {
         <Tab.Group>
             <Tab.List className="flex justify-between">
                 <div>
-                    <Button variant={"secondary"} onClick={() => mutate()}>Import Micrograph</Button>
+                    <Button variant={"secondary"} onClick={() => mutate_import()}>Import Micrograph</Button>
                 </div>
                 <div>
                     <Tab>{({ selected }) => (<TabItem {...{ selected }}><LayoutList className="h-4" /></TabItem>)}</Tab>
@@ -38,7 +47,7 @@ const MicrographsPage = () => {
                 </div>
             </Tab.List>
             <Tab.Panels className={"mt-4"}>
-                <Tab.Panel><List micrographs={data} /></Tab.Panel>
+                <Tab.Panel><List micrographs={data} onDelete={mutate_delete} /></Tab.Panel>
                 <Tab.Panel>Grid View</Tab.Panel>
             </Tab.Panels>
         </Tab.Group>
@@ -80,6 +89,23 @@ const importMicrographs = async () => {
     }
 
     return invoke("import_micrographs", { files: result })
+}
+
+const deleteMicrograph = async (uuid: string) => {
+    const dialog = await import("@tauri-apps/api/dialog");
+
+    const result = await dialog.confirm("Are you sure you want to delete this micrograph?", {
+        title: "Delete Micrograph",
+        type: "warning",
+        cancelLabel: "Cancel",
+        okLabel: "Delete"
+    });
+
+    if (!result) {
+        return
+    }
+
+    return invoke("delete_micrograph", { id: uuid })
 }
 
 export default MicrographsPage;

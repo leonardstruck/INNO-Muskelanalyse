@@ -39,6 +39,7 @@ fn main() {
             crate::commands::window::open_project,
             crate::commands::micrographs::get_micrographs,
             crate::commands::micrographs::import_micrographs,
+            crate::commands::micrographs::delete_micrograph,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

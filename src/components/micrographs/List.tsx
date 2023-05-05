@@ -7,15 +7,16 @@ import { useAutoAnimate } from "@formkit/auto-animate/react"
 
 type ListProps = {
     micrographs: PortableMicrograph[]
+    onDelete: (uuid: string) => void
 }
 
-const List = ({ micrographs }: ListProps) => {
+const List = ({ micrographs, onDelete }: ListProps) => {
     const [animationParent] = useAutoAnimate();
     return (
         <div>
             <ul role="list" className="divide-y divide-gray-700" ref={animationParent}>
                 {micrographs.map((micrograph) => (
-                    <ListItem key={micrograph.uuid} micrograph={micrograph} />
+                    <ListItem key={micrograph.uuid} micrograph={micrograph} onDelete={onDelete} />
                 ))}
             </ul>
         </div>
@@ -32,8 +33,9 @@ const statuses = {
 
 type ListItemProps = {
     micrograph: PortableMicrograph
+    onDelete: (uuid: string) => void
 }
-const ListItem = ({ micrograph }: ListItemProps) => {
+const ListItem = ({ micrograph, onDelete }: ListItemProps) => {
     return (
         <li key={micrograph.uuid} className="flex items-center justify-between gap-x-6 py-5">
             <div className="min-w-0">
@@ -108,10 +110,10 @@ const ListItem = ({ micrograph }: ListItemProps) => {
                             <Menu.Item>
                                 {({ active }) => (
                                     <a
-                                        href="#"
+                                        onClick={() => onDelete(micrograph.uuid)}
                                         className={clsx(
                                             active ? 'bg-gray-50' : '',
-                                            'block px-3 py-1 text-sm leading-6 text-gray-900'
+                                            'block px-3 py-1 text-sm leading-6 text-gray-900 cursor-pointer'
                                         )}
                                     >
                                         Delete<span className="sr-only">, {micrograph.name}</span>

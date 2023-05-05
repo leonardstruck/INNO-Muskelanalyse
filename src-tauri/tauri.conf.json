@@ -17,7 +17,8 @@
         "all": false,
         "open": true,
         "save": true,
-        "message": true
+        "message": true,
+        "confirm": true
       },
       "protocol": {
         "asset": true,
