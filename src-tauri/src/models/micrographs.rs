@@ -44,6 +44,13 @@ pub struct NewMicrograph {
     pub updated_at: NaiveDateTime,
 }
 
+#[derive(Queryable, Serialize, Debug)]
+#[diesel(table_name = micrographs)]
+pub struct MicrographWithUuidAndStatus {
+    pub uuid: String,
+    pub status: Status,
+}
+
 #[derive(TS, Serialize)]
 #[ts(export)]
 pub struct PortableMicrograph {

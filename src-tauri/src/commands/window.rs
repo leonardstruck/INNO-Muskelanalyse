@@ -1,3 +1,5 @@
+use std::collections::VecDeque;
+
 use diesel::Connection;
 use tauri::{Manager, Runtime};
 use uuid::Uuid;
@@ -37,6 +39,8 @@ pub async fn open_project<R: Runtime>(
             let path = std::path::Path::new(&path);
             Some(diesel::SqliteConnection::establish(path.to_str().unwrap()).unwrap())
         },
+        queue: crate::state::Queue(VecDeque::new()),
+        queue_status: crate::models::queue::QueueStatus::Uninitialized,
     };
 
     // run diesel migrations

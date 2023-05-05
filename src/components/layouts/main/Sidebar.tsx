@@ -10,6 +10,7 @@ import packageInfo from '../../../../package.json';
 import { MenuIcon, XIcon } from 'lucide-react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
+import QueueStatus from '../../QueueStatus'
 
 const rubik = Rubik({
     variable: "--font-rubik",
@@ -140,6 +141,9 @@ const Sidebar = () => {
                                     ))}
                                 </ul>
                             </li>
+                            <li className="mt-auto my-2 -mx-4">
+                                <QueueStatus />
+                            </li>
                         </ul>
                     </nav>
                 </div>
@@ -150,7 +154,8 @@ const Sidebar = () => {
                     <span className="sr-only">Open sidebar</span>
                     <MenuIcon className="h-6 w-6" aria-hidden="true" />
                 </button>
-                <div className="flex-1 text-sm font-semibold leading-6 text-white">{currentPage?.name ?? packageInfo.displayName}</div>
+                <div className="flex-1 text-sm font-semibold leading-6 text-white">{currentPage?.name ?? packageInfo.displayName} </div>
+                <QueueStatus />
             </div></>
     );
 }
