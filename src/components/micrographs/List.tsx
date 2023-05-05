@@ -1,6 +1,6 @@
 import { Menu, Transition } from "@headlessui/react";
 import { PortableMicrograph } from "../../../src-tauri/bindings/PortableMicrograph";
-import { MoreVertical } from "lucide-react";
+import { MoreVertical, Trash, Trash2 } from "lucide-react";
 import { Fragment } from "react";
 import clsx from "clsx";
 import { useAutoAnimate } from "@formkit/auto-animate/react"
@@ -81,12 +81,12 @@ const ListItem = ({ micrograph, onDelete }: ListItemProps) => {
                         leaveTo="transform opacity-0 scale-95"
                     >
                         <Menu.Items className="absolute right-0 z-10 mt-2 w-32 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none">
-                            <Menu.Item>
+                            {/*<Menu.Item>
                                 {({ active }) => (
                                     <a
                                         href="#"
                                         className={clsx(
-                                            active ? 'bg-gray-50' : '',
+                                            active ? 'bg-gray-100' : '',
                                             'block px-3 py-1 text-sm leading-6 text-gray-900'
                                         )}
                                     >
@@ -99,7 +99,7 @@ const ListItem = ({ micrograph, onDelete }: ListItemProps) => {
                                     <a
                                         href="#"
                                         className={clsx(
-                                            active ? 'bg-gray-50' : '',
+                                            active ? 'bg-gray-100' : '',
                                             'block px-3 py-1 text-sm leading-6 text-gray-900'
                                         )}
                                     >
@@ -107,16 +107,17 @@ const ListItem = ({ micrograph, onDelete }: ListItemProps) => {
                                     </a>
                                 )}
                             </Menu.Item>
+                            */}
                             <Menu.Item>
                                 {({ active }) => (
                                     <a
                                         onClick={() => onDelete(micrograph.uuid)}
                                         className={clsx(
-                                            active ? 'bg-gray-50' : '',
+                                            active ? 'bg-gray-100' : '',
                                             'block px-3 py-1 text-sm leading-6 text-gray-900 cursor-pointer'
                                         )}
                                     >
-                                        Delete<span className="sr-only">, {micrograph.name}</span>
+                                        <Trash2 className="h-4 w-4 inline mr-2" />Delete<span className="sr-only">, {micrograph.name}</span>
                                     </a>
                                 )}
                             </Menu.Item>

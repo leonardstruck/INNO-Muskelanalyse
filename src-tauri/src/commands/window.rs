@@ -49,6 +49,7 @@ pub async fn open_project<R: Runtime>(
     let _new_window =
         tauri::WindowBuilder::new(&app, id.to_string(), tauri::WindowUrl::App("main".into()))
             .title(format!("Project: {}", new_window.file_name))
+            .min_inner_size(650.0, 500.0)
             .theme(Some(tauri::Theme::Dark))
             .build()
             .unwrap();
