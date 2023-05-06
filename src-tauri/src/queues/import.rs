@@ -137,62 +137,14 @@ impl ImportQueue {
                     continue;
                 }
 
-                // generate thumbnail
-                let thumbnail_buffer = {
-                    let file = std::fs::File::open(&micrograph.import_path);
-                    if file.is_err() {
-                        println!("Error opening file: {:?}", file);
+                let thumbnail = match crate::image_manipulation::generate_tumbnail(
+                    micrograph.import_path.clone(),
+                ) {
+                    Ok(thumbnail) => thumbnail,
+                    Err(e) => {
+                        println!("Error generating thumbnail: {:?}", e);
                         continue;
                     }
-
-                    let file = file.unwrap();
-
-                    let reader = std::io::BufReader::new(file);
-
-                    let mut image_reader = image::io::Reader::new(reader)
-                        .with_guessed_format()
-                        .expect("Failed to read micrograph");
-
-                    image_reader.no_limits();
-
-                    let image = image_reader.decode().unwrap();
-
-                    // get aspect ratio of micrograph
-                    let aspect_ratio = image.width() as f32 / image.height() as f32;
-
-                    // calculate thumbnail size
-                    let thumbnail_size = if aspect_ratio > 1.0 {
-                        (512, (512.0 / aspect_ratio) as u32)
-                    } else {
-                        (((512.0 * aspect_ratio) as u32), 512)
-                    };
-
-                    // create thumbnail
-                    let thumbnail = image
-                        .resize(
-                            thumbnail_size.0,
-                            thumbnail_size.1,
-                            image::imageops::FilterType::Lanczos3,
-                        )
-                        .to_rgb16();
-
-                    thumbnail
-                };
-
-                // convert thumbnail to binary vec<u8>
-                let thumbnail_bin = {
-                    let mut buffer = Vec::new();
-                    let result = thumbnail_buffer.write_to(
-                        &mut std::io::Cursor::new(&mut buffer),
-                        image::ImageOutputFormat::Png,
-                    );
-
-                    if result.is_err() {
-                        println!("Error writing thumbnail: {:?}", result);
-                        continue;
-                    }
-
-                    buffer
                 };
 
                 // update micrograph
@@ -210,7 +162,7 @@ impl ImportQueue {
                     let connection = window.connection.as_mut().unwrap();
 
                     diesel::update(micrographs.filter(uuid.eq(item.micrograph_uuid)))
-                        .set((status.eq(Status::Imported), thumbnail_img.eq(thumbnail_bin)))
+                        .set((status.eq(Status::Imported), thumbnail_img.eq(thumbnail)))
                         .execute(connection)
                 };
 

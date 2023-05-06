@@ -6,6 +6,7 @@
 use tauri::Manager;
 
 mod commands;
+mod image_manipulation;
 mod menu;
 mod migrations;
 mod models;

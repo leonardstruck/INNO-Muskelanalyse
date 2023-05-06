@@ -1,5 +1,5 @@
 use diesel::Connection;
-use tauri::{window, Manager, Runtime};
+use tauri::Manager;
 use uuid::Uuid;
 
 use crate::{
