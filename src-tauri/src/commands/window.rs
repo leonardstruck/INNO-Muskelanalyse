@@ -3,7 +3,8 @@ use tauri::Manager;
 use uuid::Uuid;
 
 use crate::{
-    queues::import::ImportQueue,
+    models::micrographs::Status,
+    queues::import::{ImportQueue, ImportQueueItem},
     state::{MutableAppState, WindowState},
 };
 
@@ -11,13 +12,11 @@ use crate::{
 pub async fn open_project(
     app: tauri::AppHandle,
     state: tauri::State<'_, MutableAppState>,
+    import_queue: tauri::State<'_, ImportQueue>,
     path: String,
 ) -> Result<(), String> {
-    // lock state
-    let mut state = state.0.lock().unwrap();
-
     // check if there's already a window with this project path
-    let existing_window = state.windows.contains_key_alt(&path);
+    let existing_window = state.is_project_already_open(path.clone());
 
     if existing_window {
         return Err("The selected project is currently open in another window. Please close the project before attempting to open it again.".into());
@@ -68,39 +67,42 @@ pub async fn open_project(
         project_id
     };
 
-    // add window to windows
-    let mut new_window = WindowState {
-        id,
-        project_path: path.clone().into(),
-        file_name: {
-            // get file name from path without extension
-            let path = std::path::Path::new(&path);
-            path.file_stem().unwrap().to_str().unwrap().into()
-        },
-        connection,
-        import_queue: ImportQueue::new(),
+    let file_name = {
+        // get file name from path without extension
+        let path = std::path::Path::new(&path);
+        path.file_stem().unwrap().to_str().unwrap().to_string()
     };
 
-    // populate queues with unfinished jobs
-    new_window
-        .import_queue
-        .populate(new_window.connection.as_mut().unwrap());
+    // add window to windows
+    let new_window = WindowState {
+        id: id.clone(),
+        project_path: path.clone().into(),
+        file_name: file_name.clone(),
+        connection,
+    };
 
-    // start queues
-    new_window
-        .import_queue
-        .start(app.app_handle(), new_window.id);
+    state.add_window(new_window, path);
+
+    // load pending micrographs from database and add them to queue
+    let pending_micrographs = state
+        .get_micrographs_by_status(id.clone(), Status::Pending)
+        .unwrap();
+
+    for micrograph in pending_micrographs {
+        import_queue.push(ImportQueueItem {
+            project_uuid: id.clone().to_string(),
+            micrograph_uuid: micrograph.uuid,
+        })
+    }
 
     // open new window
     let _new_window =
         tauri::WindowBuilder::new(&app, id.to_string(), tauri::WindowUrl::App("main".into()))
-            .title(format!("Project: {}", new_window.file_name))
+            .title(format!("Project: {}", file_name))
             .min_inner_size(650.0, 500.0)
             .theme(Some(tauri::Theme::Dark))
             .build()
             .unwrap();
-
-    state.windows.insert(id, path, new_window);
 
     if app.windows().get("welcome").is_some() {
         app.windows().get("welcome").unwrap().close().unwrap();

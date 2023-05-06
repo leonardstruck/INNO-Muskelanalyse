@@ -1,175 +1,149 @@
-use std::{collections::VecDeque, thread};
+use std::{collections::VecDeque, sync::Mutex, thread};
+use tauri::{AppHandle, Manager};
+use uuid::Uuid;
 
-use diesel::prelude::*;
-use diesel::SqliteConnection;
+use crate::{models::micrographs::Status, state::MutableAppState};
 
-use crate::state::MutableAppState;
-
+#[derive(Debug, Clone)]
 pub struct ImportQueueItem {
+    pub project_uuid: String,
     pub micrograph_uuid: String,
 }
 
-#[derive(Default)]
-pub struct ImportQueue {
-    queue: VecDeque<ImportQueueItem>,
+pub struct ImportQueue(pub Mutex<ImportQueueInner>);
+
+pub struct ImportQueueInner {
+    items: VecDeque<ImportQueueItem>,
     handle: Option<tauri::async_runtime::JoinHandle<()>>,
+    app_handle: AppHandle,
 }
 
 impl ImportQueue {
-    pub fn new() -> Self {
-        Self {
-            queue: VecDeque::new(),
+    pub fn new(app_handle: AppHandle) -> Self {
+        let mut queue = Self(Mutex::new(ImportQueueInner {
+            items: VecDeque::new(),
             handle: None,
-        }
+            app_handle,
+        }));
+        queue.start();
+
+        queue
     }
 
-    pub fn push(&mut self, item: ImportQueueItem) {
-        self.queue.push_back(item);
+    pub fn push(&self, item: ImportQueueItem) {
+        let mut queue = self.0.lock().unwrap();
+        queue.items.push_back(item);
     }
 
-    pub fn pop(&mut self) -> Option<ImportQueueItem> {
-        self.queue.pop_front()
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.queue.is_empty()
-    }
-
-    pub fn remove(&mut self, uuid: &str) {
-        self.queue.retain(|item| item.micrograph_uuid != uuid);
+    pub fn remove(&self, project_uuid: &str, micrograph_uuid: &str) {
+        let mut queue = self.0.lock().unwrap();
+        queue.items.retain(|item| {
+            item.project_uuid != project_uuid || item.micrograph_uuid != micrograph_uuid
+        });
     }
 
     pub fn len(&self) -> usize {
-        self.queue.len()
+        let queue = self.0.lock().unwrap();
+        queue.items.len()
     }
 
-    pub fn populate(&mut self, connection: &mut SqliteConnection) {
-        use crate::models::micrographs::{MicrographWithUuidAndStatus, Status};
-        use crate::schema::micrographs::dsl::*;
-        use diesel::prelude::*;
+    pub fn start(&mut self) {
+        // check if the queue is already running (handle isSome)
+        let is_running = {
+            let queue = self.0.lock().unwrap();
+            queue.handle.is_some()
+        };
 
-        let unfinished_micrographs = micrographs
-            .select((uuid, status))
-            .filter(status.is(Status::Pending))
-            .load::<MicrographWithUuidAndStatus>(connection)
-            .unwrap();
-
-        for micrograph in unfinished_micrographs {
-            self.push(ImportQueueItem {
-                micrograph_uuid: micrograph.uuid,
-            });
-        }
-    }
-
-    pub fn start(&mut self, app: tauri::AppHandle, window_id: uuid::Uuid) {
-        // check if queue is already running
-        if self.handle.is_some() {
+        // return if isRunning
+        if is_running {
             return;
         }
 
-        // start queue
-        let handle = tauri::async_runtime::spawn(async move {
-            use crate::models::micrographs::{Micrograph, Status};
-            use crate::schema::micrographs::dsl::*;
+        let app_handle = {
+            let queue = self.0.lock().unwrap();
+            queue.app_handle.app_handle()
+        };
 
-            use tauri::Manager;
+        let handle = tauri::async_runtime::spawn(runner(app_handle));
 
-            loop {
-                let item = {
-                    // get state
-                    let state = app.state::<MutableAppState>();
-                    let mut state = state.0.lock().unwrap();
+        {
+            let mut queue = self.0.lock().unwrap();
+            queue.handle = Some(handle);
+        }
+    }
 
-                    // get window
-                    let window = state.windows.get_mut(&window_id).unwrap();
+    fn pop_front(&self) -> Option<ImportQueueItem> {
+        let mut queue = self.0.lock().unwrap();
+        queue.items.pop_front()
+    }
+}
 
-                    // get next item
-                    window.import_queue.pop()
-                };
+async fn runner(app_handle: AppHandle) {
+    loop {
+        let item = {
+            let queue = app_handle.state::<self::ImportQueue>();
+            queue.pop_front()
+        };
 
-                // if there is no next item, wait and try again
-                if item.is_none() {
-                    println!("No item in import queue, waiting...");
-                    // sleep for 1 second
-                    thread::sleep(std::time::Duration::from_secs(10));
-                    continue;
-                }
+        if item.is_none() {
+            println!("Import Queue is empty. Waiting...");
+            thread::sleep(std::time::Duration::from_secs(10));
+            continue;
+        }
 
-                let item = item.unwrap();
+        let item = item.unwrap();
 
-                println!("Importing micrograph {}", item.micrograph_uuid);
+        tauri::async_runtime::spawn(process_item(app_handle.app_handle(), item.clone()));
+    }
+}
 
-                let micrograph = {
-                    // get state
-                    let state = app.state::<MutableAppState>();
-                    let mut state = state.0.lock().unwrap();
+async fn process_item(app_handle: AppHandle, item: ImportQueueItem) {
+    let app_state = app_handle.state::<MutableAppState>();
+    let project_id = Uuid::parse_str(&item.project_uuid).unwrap();
+    let micrograph_id = Uuid::parse_str(&item.micrograph_uuid).unwrap();
 
-                    // get window
-                    let window = state.windows.get_mut(&window_id).unwrap();
+    let result: Result<(), String> = {
+        let micrograph = app_state.get_micrograph(project_id, micrograph_id).unwrap();
 
-                    // get connection
-                    let connection = window.connection.as_mut().unwrap();
-
-                    let micrograph = micrographs
-                        .filter(uuid.eq(item.micrograph_uuid.clone()))
-                        .first::<Micrograph>(connection);
-
-                    // if there is an error, print it and continue
-                    if micrograph.is_err() {
-                        println!("Error getting micrograph: {:?}", micrograph);
-                        continue;
-                    }
-
-                    let micrograph = micrograph.unwrap() as Micrograph;
-
-                    micrograph
-                };
-
-                // check if micrograph is already imported
-                if micrograph.status != Status::Pending {
-                    println!("Micrograph already imported");
-                    continue;
-                }
-
-                // check if import_path is still valid
-                if !std::path::Path::new(&micrograph.import_path).exists() {
-                    println!("Import path does not exist");
-                    continue;
-                }
-
-                let thumbnail = match crate::image_manipulation::generate_tumbnail(
-                    micrograph.import_path.clone(),
-                ) {
-                    Ok(thumbnail) => thumbnail,
-                    Err(e) => {
-                        println!("Error generating thumbnail: {:?}", e);
-                        continue;
-                    }
-                };
-
-                // update micrograph
-                let update_result = {
-                    use crate::schema::micrographs::dsl::*;
-
-                    // get state
-                    let state = app.state::<MutableAppState>();
-                    let mut state = state.0.lock().unwrap();
-
-                    // get window
-                    let window = state.windows.get_mut(&window_id).unwrap();
-
-                    // get connection
-                    let connection = window.connection.as_mut().unwrap();
-
-                    diesel::update(micrographs.filter(uuid.eq(item.micrograph_uuid)))
-                        .set((status.eq(Status::Imported), thumbnail_img.eq(thumbnail)))
-                        .execute(connection)
-                };
-
-                println!("Micrograph: {:?}", micrograph);
+        let thumbnail =
+            match crate::image_manipulation::generate_thumbnail(micrograph.import_path.clone()) {
+                Err(e) => Err(format!("Failed to generate thumbnail: {:?}", e)),
+                Ok(thumbnail) => Ok(thumbnail),
             }
-        });
+            .unwrap();
 
-        self.handle = Some(handle);
+        let display =
+            match crate::image_manipulation::generate_display(micrograph.import_path.clone()) {
+                Err(e) => Err(format!("Failed to generate display image: {:?}", e)),
+                Ok(display) => Ok(display),
+            }
+            .unwrap();
+
+        app_state
+            .store_display_image(project_id, micrograph_id, display)
+            .unwrap();
+        app_state
+            .store_thumbnail(project_id, micrograph_id, thumbnail)
+            .unwrap();
+
+        Ok(())
+    };
+
+    match result {
+        Ok(_) => {
+            println!(
+                "Successfully imported micrograph {}",
+                item.micrograph_uuid.clone()
+            );
+            app_state
+                .update_micrograph_status(project_id, micrograph_id, Status::Imported)
+                .unwrap();
+        }
+        Err(e) => {
+            println!("Failed to import micrograph {}: {}", micrograph_id, e);
+            app_state
+                .update_micrograph_status(project_id, micrograph_id, Status::Error)
+                .unwrap();
+        }
     }
 }

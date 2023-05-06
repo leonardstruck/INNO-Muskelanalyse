@@ -129,6 +129,9 @@ impl Micrograph {
             return Some(path);
         }
 
+        // create necessary directories
+        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+
         // load display image from database and write to file
         std::fs::write(&path, self.display_img.clone()).unwrap();
 

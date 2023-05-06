@@ -9,9 +9,7 @@ import { LayoutGrid, LayoutList } from "lucide-react";
 import { Button } from "../../components/ui/button";
 
 const MicrographsPage = () => {
-    const { data, refetch } = useQuery(["micrographs"], micrographFetcher, {
-        refetchInterval: 5000
-    });
+    const { data, refetch, isLoading } = useQuery(["micrographs"], micrographFetcher);
     const queryClient = useQueryClient();
     const { mutate: mutate_import } = useMutation(["import_micrographs"], importMicrographs, {
         onSuccess: () => {
@@ -25,13 +23,13 @@ const MicrographsPage = () => {
         }
     });
 
-    if (!data) {
+    if (isLoading) {
         return (
-            <div>no data</div>
+            <div>Loading</div>
         )
     }
 
-    if (data.length === 0) {
+    if (!data || data.length === 0) {
         return (
             <div className="flex justify-center items-center h-full">
                 <EmptyState onImport={mutate_import} />
