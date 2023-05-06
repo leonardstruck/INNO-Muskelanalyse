@@ -8,13 +8,13 @@ use diesel::{
     serialize::{Output, ToSql},
     sql_types::Text,
     sqlite::Sqlite,
-    AsExpression, FromSqlRow, Identifiable, Insertable, Queryable,
+    AsChangeset, AsExpression, FromSqlRow, Identifiable, Insertable, Queryable,
 };
 use serde::Serialize;
 use tauri::AppHandle;
 use ts_rs::TS;
 
-#[derive(Queryable, Debug, Identifiable, Serialize)]
+#[derive(Queryable, Debug, Identifiable, Serialize, AsChangeset)]
 #[diesel(primary_key(uuid))]
 pub struct Micrograph {
     pub uuid: String,
@@ -100,6 +100,9 @@ impl Micrograph {
         if path.exists() {
             return Some(path);
         }
+
+        // create necessary directories
+        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
 
         // load thumbnail from database and write to file
         std::fs::write(&path, self.thumbnail_img.clone()).unwrap();

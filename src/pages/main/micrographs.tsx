@@ -1,6 +1,6 @@
 import { invoke } from "@tauri-apps/api/tauri";
 import { PortableMicrograph } from "../../../src-tauri/bindings/PortableMicrograph"
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import EmptyState from "../../components/micrographs/EmptyState";
 import { Tab } from "@headlessui/react";
 import List from "../../components/micrographs/List";
@@ -9,10 +9,14 @@ import { LayoutGrid, LayoutList } from "lucide-react";
 import { Button } from "../../components/ui/button";
 
 const MicrographsPage = () => {
-    const { data, refetch } = useQuery(["micrographs"], micrographFetcher);
+    const { data, refetch } = useQuery(["micrographs"], micrographFetcher, {
+        refetchInterval: 5000
+    });
+    const queryClient = useQueryClient();
     const { mutate: mutate_import } = useMutation(["import_micrographs"], importMicrographs, {
         onSuccess: () => {
             refetch();
+            queryClient.invalidateQueries(["queue_status"]);
         }
     });
     const { mutate: mutate_delete } = useMutation(["delete_micrograph"], deleteMicrograph, {

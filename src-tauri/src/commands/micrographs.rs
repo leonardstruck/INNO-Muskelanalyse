@@ -2,7 +2,10 @@ use diesel::prelude::*;
 use tauri::Manager;
 use uuid::Uuid;
 
-use crate::models::micrographs::{NewMicrograph, PortableMicrograph};
+use crate::{
+    models::micrographs::{NewMicrograph, PortableMicrograph},
+    queues::import::ImportQueueItem,
+};
 
 #[tauri::command]
 pub async fn get_micrographs(
@@ -47,8 +50,6 @@ pub async fn import_micrographs(
     window: tauri::Window,
     files: Vec<String>,
 ) -> Result<(), String> {
-    println!("importing micrographs: {:?}", files);
-
     let id = Uuid::parse_str(window.label()).unwrap();
 
     // get state
@@ -84,6 +85,11 @@ pub async fn import_micrographs(
             .values(&micrograph)
             .execute(connection)
             .expect("Error saving new micrograph");
+
+        // add micrograph to import queue
+        window.import_queue.push(ImportQueueItem {
+            micrograph_uuid: micrograph.uuid.clone(),
+        });
     }
 
     Ok(())
@@ -114,6 +120,9 @@ pub async fn delete_micrograph(
     diesel::delete(micrographs.filter(uuid.eq(id.to_string())))
         .execute(connection)
         .expect("Error deleting micrograph");
+
+    // remove micrograph from import queue if it is there
+    window.import_queue.remove(id.to_string().as_str());
 
     Ok(())
 }

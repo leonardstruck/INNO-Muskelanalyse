@@ -9,6 +9,7 @@ mod commands;
 mod menu;
 mod migrations;
 mod models;
+mod queues;
 mod schema;
 mod state;
 mod utils;
@@ -40,8 +41,7 @@ fn main() {
             crate::commands::micrographs::get_micrographs,
             crate::commands::micrographs::import_micrographs,
             crate::commands::micrographs::delete_micrograph,
-            crate::commands::queue::get_queue_info,
-            crate::commands::queue::queue_warmup,
+            crate::commands::queue::queue_get_status,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

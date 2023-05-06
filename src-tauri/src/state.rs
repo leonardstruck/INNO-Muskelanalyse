@@ -1,6 +1,6 @@
-use crate::models::queue::{QueueItem, QueueStatus};
+use crate::queues::import::ImportQueue;
 use multi_map::MultiMap;
-use std::{collections::VecDeque, path::PathBuf, sync::Mutex};
+use std::{path::PathBuf, sync::Mutex};
 use uuid::Uuid;
 
 #[derive(Default)]
@@ -17,9 +17,5 @@ pub struct WindowState {
     pub project_path: PathBuf,
     pub file_name: String,
     pub connection: Option<diesel::SqliteConnection>,
-    pub queue: Queue,
-    pub queue_status: QueueStatus,
+    pub import_queue: ImportQueue,
 }
-
-#[derive(Default)]
-pub struct Queue(pub VecDeque<QueueItem>);

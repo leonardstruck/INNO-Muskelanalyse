@@ -1,14 +1,15 @@
-use std::collections::VecDeque;
-
 use diesel::Connection;
-use tauri::{Manager, Runtime};
+use tauri::{window, Manager, Runtime};
 use uuid::Uuid;
 
-use crate::state::{MutableAppState, WindowState};
+use crate::{
+    queues::import::ImportQueue,
+    state::{MutableAppState, WindowState},
+};
 
 #[tauri::command]
-pub async fn open_project<R: Runtime>(
-    app: tauri::AppHandle<R>,
+pub async fn open_project(
+    app: tauri::AppHandle,
     state: tauri::State<'_, MutableAppState>,
     path: String,
 ) -> Result<(), String> {
@@ -39,8 +40,7 @@ pub async fn open_project<R: Runtime>(
             let path = std::path::Path::new(&path);
             Some(diesel::SqliteConnection::establish(path.to_str().unwrap()).unwrap())
         },
-        queue: crate::state::Queue(VecDeque::new()),
-        queue_status: crate::models::queue::QueueStatus::Uninitialized,
+        import_queue: ImportQueue::new(),
     };
 
     // run diesel migrations
@@ -48,6 +48,16 @@ pub async fn open_project<R: Runtime>(
         Ok(_) => {}
         Err(error) => return Err(format!("The project file is corrupted: {}", error)),
     }
+
+    // populate queues with unfinished jobs
+    new_window
+        .import_queue
+        .populate(new_window.connection.as_mut().unwrap());
+
+    // start queues
+    new_window
+        .import_queue
+        .start(app.app_handle(), new_window.id);
 
     // open new window
     let _new_window =
