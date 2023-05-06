@@ -1,6 +1,5 @@
 use std::{collections::VecDeque, thread};
 
-use diesel::associations::HasTable;
 use diesel::prelude::*;
 use diesel::SqliteConnection;
 
@@ -51,8 +50,7 @@ impl ImportQueue {
 
         let unfinished_micrographs = micrographs
             .select((uuid, status))
-            .filter(status.is_not(Status::Error))
-            .filter(status.is_not(Status::Done))
+            .filter(status.is(Status::Pending))
             .load::<MicrographWithUuidAndStatus>(connection)
             .unwrap();
 

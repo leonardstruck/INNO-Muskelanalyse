@@ -1,6 +1,14 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
+    config (id) {
+        id -> Integer,
+        key -> Text,
+        value -> Text,
+    }
+}
+
+diesel::table! {
     micrographs (uuid) {
         uuid -> Text,
         name -> Text,
@@ -36,6 +44,7 @@ diesel::table! {
 diesel::joinable!(segments -> micrographs (micrograph_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
+    config,
     micrographs,
     segments,
 );

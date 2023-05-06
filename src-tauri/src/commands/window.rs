@@ -23,8 +23,50 @@ pub async fn open_project(
         return Err("The selected project is currently open in another window. Please close the project before attempting to open it again.".into());
     }
 
+    let mut connection = {
+        // create connection to database
+        let path = std::path::Path::new(&path);
+        Some(diesel::SqliteConnection::establish(path.to_str().unwrap()).unwrap())
+    };
+
+    // run diesel migrations
+    match crate::migrations::run_migrations(connection.as_mut().unwrap()) {
+        Ok(_) => {}
+        Err(error) => return Err(format!("The project file is corrupted: {}", error)),
+    }
+
     // generate new window id
-    let id = Uuid::new_v4();
+    let id = {
+        use crate::schema::config::dsl::*;
+        use diesel::prelude::*;
+
+        // check if the project id is already in database
+        let existing_id = config
+            .select(value)
+            .filter(key.eq("project_id"))
+            .first::<String>(connection.as_mut().unwrap())
+            .optional()
+            .unwrap();
+
+        // generate new id if it doesn't exist
+        let project_id = match existing_id {
+            Some(other_id) => Uuid::parse_str(&other_id).unwrap(),
+            None => {
+                let new_id = Uuid::new_v4();
+                let new_config = crate::models::config::NewConfig {
+                    key: "project_id".into(),
+                    value: new_id.to_string(),
+                };
+                diesel::insert_into(crate::schema::config::table)
+                    .values(new_config)
+                    .execute(connection.as_mut().unwrap())
+                    .unwrap();
+                new_id
+            }
+        };
+
+        project_id
+    };
 
     // add window to windows
     let mut new_window = WindowState {
@@ -35,19 +77,9 @@ pub async fn open_project(
             let path = std::path::Path::new(&path);
             path.file_stem().unwrap().to_str().unwrap().into()
         },
-        connection: {
-            // create connection to database
-            let path = std::path::Path::new(&path);
-            Some(diesel::SqliteConnection::establish(path.to_str().unwrap()).unwrap())
-        },
+        connection,
         import_queue: ImportQueue::new(),
     };
-
-    // run diesel migrations
-    match crate::migrations::run_migrations(new_window.connection.as_mut().unwrap()) {
-        Ok(_) => {}
-        Err(error) => return Err(format!("The project file is corrupted: {}", error)),
-    }
 
     // populate queues with unfinished jobs
     new_window
