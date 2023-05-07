@@ -241,7 +241,7 @@ async fn process_item(app_handle: AppHandle, item: PreprocessingQueueItem) {
     }
 
     // update micrograph status
-    let result = app_state.update_micrograph_status(
+    let _result = app_state.update_micrograph_status(
         &item.project_uuid,
         &item.micrograph_uuid,
         crate::models::micrographs::Status::Segmented,
