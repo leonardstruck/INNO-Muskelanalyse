@@ -1,4 +1,7 @@
-use crate::models::micrographs::{Micrograph, NewMicrograph};
+use crate::models::{
+    micrographs::{Micrograph, NewMicrograph},
+    segments::NewSegment,
+};
 use diesel::{associations::HasTable, prelude::*};
 use log::error;
 use multi_map::MultiMap;
@@ -200,5 +203,23 @@ impl MutableAppState {
             .set(display_img.eq(display_image))
             .execute(connection)
             .map_err(|err| format!("Failed to store display image in database: {:?}", err))
+    }
+
+    pub fn add_segments(
+        &self,
+        project_id: &Uuid,
+        new_segments: Vec<NewSegment>,
+    ) -> Result<usize, String> {
+        use crate::schema::segments::dsl::*;
+
+        let mut state = self.0.lock().unwrap();
+        let window_state = state.windows.get_mut(&project_id).unwrap();
+        let connection = window_state.connection.as_mut().unwrap();
+        let result = diesel::insert_into(segments)
+            .values(new_segments)
+            .execute(connection)
+            .map_err(|err| format!("Failed to insert segments: {:?}", err));
+
+        result
     }
 }

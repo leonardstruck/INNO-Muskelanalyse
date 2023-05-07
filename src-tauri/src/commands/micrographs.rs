@@ -2,7 +2,10 @@ use uuid::Uuid;
 
 use crate::{
     models::micrographs::{NewMicrograph, PortableMicrograph},
-    queues::import::{ImportQueue, ImportQueueItem},
+    queues::{
+        import::{ImportQueue, ImportQueueItem},
+        preprocessing::PreprocessingQueue,
+    },
     state::MutableAppState,
 };
 
@@ -71,12 +74,14 @@ pub async fn delete_micrograph(
     window: tauri::Window,
     state: tauri::State<'_, MutableAppState>,
     import_queue: tauri::State<'_, ImportQueue>,
+    preprocessing_queue: tauri::State<'_, PreprocessingQueue>,
     id: uuid::Uuid,
 ) -> Result<(), String> {
     let project_id = Uuid::parse_str(window.label()).unwrap();
 
     state.delete_micrograph(&project_id, &id).unwrap();
     import_queue.remove(&project_id, &id);
+    preprocessing_queue.remove(&project_id, &id);
 
     Ok(())
 }

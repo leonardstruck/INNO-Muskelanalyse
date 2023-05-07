@@ -151,6 +151,15 @@ async fn process_item(app_handle: AppHandle, item: ImportQueueItem) {
                     Status::Imported,
                 )
                 .unwrap();
+
+            // add micrograph to preprocessing queue
+            let preprocessing_queue =
+                app_handle.state::<crate::queues::preprocessing::PreprocessingQueue>();
+
+            preprocessing_queue.push(crate::queues::preprocessing::PreprocessingQueueItem {
+                project_uuid: item.project_uuid,
+                micrograph_uuid: item.micrograph_uuid,
+            });
         }
         Err(e) => {
             error!("Failed to import {:?}, {:?}", &item, e);

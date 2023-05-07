@@ -44,6 +44,7 @@ pub fn menu_event_handler(event: WindowMenuEvent) {
                         event.window().app_handle(),
                         event.window().state(),
                         event.window().state(),
+                        event.window().state(),
                         path.unwrap().to_str().unwrap().into(),
                     )) {
                         Ok(_) => {}
@@ -73,6 +74,7 @@ pub fn menu_event_handler(event: WindowMenuEvent) {
 
                     match tauri::async_runtime::block_on(crate::commands::window::open_project(
                         event.window().app_handle(),
+                        event.window().state(),
                         event.window().state(),
                         event.window().state(),
                         path.unwrap().to_str().unwrap().into(),

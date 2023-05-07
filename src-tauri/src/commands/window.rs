@@ -4,7 +4,10 @@ use uuid::Uuid;
 
 use crate::{
     models::micrographs::Status,
-    queues::import::{ImportQueue, ImportQueueItem},
+    queues::{
+        import::{ImportQueue, ImportQueueItem},
+        preprocessing::{PreprocessingQueue, PreprocessingQueueItem},
+    },
     state::{MutableAppState, WindowState},
 };
 
@@ -13,6 +16,7 @@ pub async fn open_project(
     app: tauri::AppHandle,
     state: tauri::State<'_, MutableAppState>,
     import_queue: tauri::State<'_, ImportQueue>,
+    preprocessing_queue: tauri::State<'_, PreprocessingQueue>,
     path: String,
 ) -> Result<(), String> {
     // check if there's already a window with this project path
@@ -83,13 +87,25 @@ pub async fn open_project(
 
     state.add_window(new_window, path);
 
-    // load pending micrographs from database and add them to queue
+    // load pending micrographs from database and add them to the import queue
     let pending_micrographs = state
         .get_micrographs_by_status(&id, Status::Pending)
         .unwrap();
 
     for micrograph in pending_micrographs {
         import_queue.push(ImportQueueItem {
+            project_uuid: id.clone(),
+            micrograph_uuid: Uuid::parse_str(&micrograph.uuid).unwrap(),
+        })
+    }
+
+    // load imported micrographs from database and add them to the preprocessing queue
+    let imported_micrographs = state
+        .get_micrographs_by_status(&id, Status::Imported)
+        .unwrap();
+
+    for micrograph in imported_micrographs {
+        preprocessing_queue.push(PreprocessingQueueItem {
             project_uuid: id.clone(),
             micrograph_uuid: Uuid::parse_str(&micrograph.uuid).unwrap(),
         })
