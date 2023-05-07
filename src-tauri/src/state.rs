@@ -114,15 +114,17 @@ impl MutableAppState {
     ) -> Result<usize, String> {
         use crate::schema::micrographs::dsl::*;
 
-        let mut state = self.0.lock().unwrap();
-        let window_state = state.windows.get_mut(&project_id).unwrap();
-        let connection = window_state.connection.as_mut().unwrap();
+        let result = {
+            let mut state = self.0.lock().unwrap();
+            let window_state = state.windows.get_mut(&project_id).unwrap();
+            let connection = window_state.connection.as_mut().unwrap();
 
-        let result = diesel::delete(micrographs.filter(uuid.eq(micrograph_id.to_string())))
-            .execute(connection)
-            .map_err(|err| format!("Failed to delete micrograph: {:?}", err));
+            diesel::delete(micrographs.filter(uuid.eq(micrograph_id.to_string())))
+                .execute(connection)
+                .map_err(|err| format!("Failed to delete micrograph: {:?}", err))
+        };
 
-        if let Ok(_) = result {
+        if result.is_ok() {
             self.vacuum(project_id);
         }
 
