@@ -1,5 +1,6 @@
 use crate::models::micrographs::{Micrograph, NewMicrograph};
 use diesel::{associations::HasTable, prelude::*};
+use log::error;
 use multi_map::MultiMap;
 use std::{path::PathBuf, sync::Mutex};
 use uuid::Uuid;
@@ -36,6 +37,18 @@ impl MutableAppState {
     pub fn is_project_already_open(&self, path: &String) -> bool {
         let state = self.0.lock().unwrap();
         state.windows.contains_key_alt(path)
+    }
+
+    // CLEANUP
+    pub fn vacuum(&self, project_id: &Uuid) {
+        let mut state = self.0.lock().unwrap();
+        let window_state = state.windows.get_mut(project_id).unwrap();
+        let connection = window_state.connection.as_mut().unwrap();
+
+        let vacuum_command = diesel::sql_query("VACUUM").execute(connection);
+        if let Err(err) = vacuum_command {
+            error!("Failed to vacuum database: {:?}", err);
+        }
     }
 
     // MICROGRAPH
@@ -105,9 +118,15 @@ impl MutableAppState {
         let window_state = state.windows.get_mut(&project_id).unwrap();
         let connection = window_state.connection.as_mut().unwrap();
 
-        diesel::delete(micrographs.filter(uuid.eq(micrograph_id.to_string())))
+        let result = diesel::delete(micrographs.filter(uuid.eq(micrograph_id.to_string())))
             .execute(connection)
-            .map_err(|err| format!("Failed to delete micrograph: {:?}", err))
+            .map_err(|err| format!("Failed to delete micrograph: {:?}", err));
+
+        if let Ok(_) = result {
+            self.vacuum(project_id);
+        }
+
+        result
     }
 
     pub fn add_micrograph(
