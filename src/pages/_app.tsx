@@ -23,11 +23,11 @@ type AppPropsWithLayout = AppProps & {
   Component: NextPageWithLayout
 }
 
+const queryClient = new QueryClient()
 
 export default function MyApp({ Component, pageProps }: AppPropsWithLayout) {
   // use the layout defined at the page level, if available
   const getLayout = Component.getLayout ?? ((page) => <MainLayout>{page}</MainLayout>)
-  const queryClient = new QueryClient()
 
   return (
     <QueryClientProvider client={queryClient}>

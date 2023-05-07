@@ -6,11 +6,13 @@ import EmptyState from "../../components/micrographs/EmptyState";
 import { Tab } from "@headlessui/react";
 import List from "../../components/micrographs/List";
 import clsx from "clsx";
-import { LayoutGrid, LayoutList } from "lucide-react";
+import { LayoutGrid, LayoutList, Loader2 } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { useEffect } from "react";
 
 const MicrographsPage = () => {
+    const queryClient = useQueryClient();
+
     const { data, refetch, isLoading } = useQuery(["micrographs"], micrographFetcher);
     useEffect(() => {
         const unlisten = listen("UPDATE_MICROGRAPHS", () => refetch());
@@ -20,7 +22,6 @@ const MicrographsPage = () => {
         }
     }, []);
 
-    const queryClient = useQueryClient();
     const { mutate: mutate_import } = useMutation(["import_micrographs"], importMicrographs, {
         onSuccess: () => {
             refetch();
@@ -35,7 +36,9 @@ const MicrographsPage = () => {
 
     if (isLoading) {
         return (
-            <div>Loading</div>
+            <div className="flex justify-center items-center h-full">
+                <Loader2 className="h-8 w-8 text-gray-600 animate-spin" />
+            </div>
         )
     }
 
