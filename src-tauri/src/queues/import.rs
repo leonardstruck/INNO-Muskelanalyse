@@ -1,3 +1,4 @@
+use log::{debug, error, info};
 use std::{collections::VecDeque, sync::Mutex, thread};
 use tauri::{AppHandle, Manager};
 use uuid::Uuid;
@@ -6,39 +7,34 @@ use crate::{models::micrographs::Status, state::MutableAppState};
 
 #[derive(Debug, Clone)]
 pub struct ImportQueueItem {
-    pub project_uuid: String,
-    pub micrograph_uuid: String,
+    pub project_uuid: Uuid,
+    pub micrograph_uuid: Uuid,
 }
 
 pub struct ImportQueue(pub Mutex<ImportQueueInner>);
 
 pub struct ImportQueueInner {
     items: VecDeque<ImportQueueItem>,
-    handle: Option<tauri::async_runtime::JoinHandle<()>>,
     app_handle: AppHandle,
 }
 
 impl ImportQueue {
     pub fn new(app_handle: AppHandle) -> Self {
-        let mut queue = Self(Mutex::new(ImportQueueInner {
+        Self(Mutex::new(ImportQueueInner {
             items: VecDeque::new(),
-            handle: None,
             app_handle,
-        }));
-        queue.start();
-
-        queue
+        }))
     }
 
     pub fn push(&self, item: ImportQueueItem) {
         let mut queue = self.0.lock().unwrap();
-        queue.items.push_back(item);
+        queue.items.push_back(item.clone())
     }
 
-    pub fn remove(&self, project_uuid: &str, micrograph_uuid: &str) {
+    pub fn remove(&self, project_uuid: &Uuid, micrograph_uuid: &Uuid) {
         let mut queue = self.0.lock().unwrap();
         queue.items.retain(|item| {
-            item.project_uuid != project_uuid || item.micrograph_uuid != micrograph_uuid
+            item.project_uuid != *project_uuid || item.micrograph_uuid != *micrograph_uuid
         });
     }
 
@@ -47,29 +43,15 @@ impl ImportQueue {
         queue.items.len()
     }
 
-    pub fn start(&mut self) {
-        // check if the queue is already running (handle isSome)
-        let is_running = {
-            let queue = self.0.lock().unwrap();
-            queue.handle.is_some()
-        };
-
-        // return if isRunning
-        if is_running {
-            return;
-        }
-
+    pub fn start(&self) {
         let app_handle = {
             let queue = self.0.lock().unwrap();
             queue.app_handle.app_handle()
         };
 
-        let handle = tauri::async_runtime::spawn(runner(app_handle));
+        tauri::async_runtime::spawn(runner(app_handle));
 
-        {
-            let mut queue = self.0.lock().unwrap();
-            queue.handle = Some(handle);
-        }
+        info!("Initialized import queue");
     }
 
     fn pop_front(&self) -> Option<ImportQueueItem> {
@@ -79,31 +61,57 @@ impl ImportQueue {
 }
 
 async fn runner(app_handle: AppHandle) {
+    let workers = 4;
+    let queue = app_handle.state::<self::ImportQueue>();
+
     loop {
-        let item = {
-            let queue = app_handle.state::<self::ImportQueue>();
-            queue.pop_front()
+        // get maximum {workers} items from queue
+        let items = {
+            let mut items = Vec::new();
+
+            for _ in 0..workers {
+                if let Some(item) = queue.pop_front() {
+                    items.push(item);
+                }
+            }
+
+            items
         };
 
-        if item.is_none() {
-            println!("Import Queue is empty. Waiting...");
+        if items.is_empty() {
+            debug!("No items in import queue. Sleeping for 10 seconds.");
             thread::sleep(std::time::Duration::from_secs(10));
             continue;
         }
 
-        let item = item.unwrap();
+        // process items in parallel
+        let mut handles = Vec::new();
 
-        tauri::async_runtime::spawn(process_item(app_handle.app_handle(), item.clone()));
+        for item in items {
+            let app_handle = app_handle.clone();
+            let handle = tauri::async_runtime::spawn(async move {
+                process_item(app_handle, item).await;
+            });
+
+            handles.push(handle);
+        }
+
+        // wait for all items to be processed
+        for handle in handles {
+            let _ = handle.await;
+        }
     }
 }
 
 async fn process_item(app_handle: AppHandle, item: ImportQueueItem) {
     let app_state = app_handle.state::<MutableAppState>();
-    let project_id = Uuid::parse_str(&item.project_uuid).unwrap();
-    let micrograph_id = Uuid::parse_str(&item.micrograph_uuid).unwrap();
+
+    debug!("Processing {:?}", item);
 
     let result: Result<(), String> = {
-        let micrograph = app_state.get_micrograph(project_id, micrograph_id).unwrap();
+        let micrograph = app_state
+            .get_micrograph(&item.project_uuid, &item.micrograph_uuid)
+            .unwrap();
 
         let thumbnail =
             match crate::image_manipulation::generate_thumbnail(micrograph.import_path.clone()) {
@@ -120,10 +128,10 @@ async fn process_item(app_handle: AppHandle, item: ImportQueueItem) {
             .unwrap();
 
         app_state
-            .store_display_image(project_id, micrograph_id, display)
+            .store_display_image(&item.project_uuid, &item.micrograph_uuid, display)
             .unwrap();
         app_state
-            .store_thumbnail(project_id, micrograph_id, thumbnail)
+            .store_thumbnail(&item.project_uuid, &item.micrograph_uuid, thumbnail)
             .unwrap();
 
         Ok(())
@@ -131,18 +139,23 @@ async fn process_item(app_handle: AppHandle, item: ImportQueueItem) {
 
     match result {
         Ok(_) => {
-            println!(
-                "Successfully imported micrograph {}",
-                item.micrograph_uuid.clone()
-            );
+            debug!("Successfully imported {:?}", &item);
+            // send event to project window to update micrographs
+            app_handle
+                .emit_to(&item.project_uuid.to_string(), "UPDATE_MICROGRAPHS", ())
+                .unwrap();
             app_state
-                .update_micrograph_status(project_id, micrograph_id, Status::Imported)
+                .update_micrograph_status(
+                    &item.project_uuid,
+                    &item.micrograph_uuid,
+                    Status::Imported,
+                )
                 .unwrap();
         }
         Err(e) => {
-            println!("Failed to import micrograph {}: {}", micrograph_id, e);
+            error!("Failed to import {:?}, {:?}", &item, e);
             app_state
-                .update_micrograph_status(project_id, micrograph_id, Status::Error)
+                .update_micrograph_status(&item.project_uuid, &item.micrograph_uuid, Status::Error)
                 .unwrap();
         }
     }

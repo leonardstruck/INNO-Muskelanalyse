@@ -1,4 +1,5 @@
 import { invoke } from "@tauri-apps/api/tauri";
+import { listen } from "@tauri-apps/api/event";
 import { PortableMicrograph } from "../../../src-tauri/bindings/PortableMicrograph"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import EmptyState from "../../components/micrographs/EmptyState";
@@ -7,9 +8,18 @@ import List from "../../components/micrographs/List";
 import clsx from "clsx";
 import { LayoutGrid, LayoutList } from "lucide-react";
 import { Button } from "../../components/ui/button";
+import { useEffect } from "react";
 
 const MicrographsPage = () => {
     const { data, refetch, isLoading } = useQuery(["micrographs"], micrographFetcher);
+    useEffect(() => {
+        const unlisten = listen("UPDATE_MICROGRAPHS", () => refetch());
+
+        return () => {
+            unlisten.then((f) => f());
+        }
+    }, []);
+
     const queryClient = useQueryClient();
     const { mutate: mutate_import } = useMutation(["import_micrographs"], importMicrographs, {
         onSuccess: () => {

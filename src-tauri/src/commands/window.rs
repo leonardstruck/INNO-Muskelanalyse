@@ -16,7 +16,7 @@ pub async fn open_project(
     path: String,
 ) -> Result<(), String> {
     // check if there's already a window with this project path
-    let existing_window = state.is_project_already_open(path.clone());
+    let existing_window = state.is_project_already_open(&path);
 
     if existing_window {
         return Err("The selected project is currently open in another window. Please close the project before attempting to open it again.".into());
@@ -85,13 +85,13 @@ pub async fn open_project(
 
     // load pending micrographs from database and add them to queue
     let pending_micrographs = state
-        .get_micrographs_by_status(id.clone(), Status::Pending)
+        .get_micrographs_by_status(&id, Status::Pending)
         .unwrap();
 
     for micrograph in pending_micrographs {
         import_queue.push(ImportQueueItem {
-            project_uuid: id.clone().to_string(),
-            micrograph_uuid: micrograph.uuid,
+            project_uuid: id.clone(),
+            micrograph_uuid: Uuid::parse_str(&micrograph.uuid).unwrap(),
         })
     }
 

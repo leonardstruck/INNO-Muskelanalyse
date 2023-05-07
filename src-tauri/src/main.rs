@@ -30,13 +30,19 @@ fn main() {
 
                 let project_id = uuid::Uuid::parse_str(event.window().label()).unwrap();
 
-                state.remove_window(project_id);
+                state.remove_window(&project_id);
             }
         })
         .setup(|app| {
+            env_logger::init();
+
             // init queues
             let import_queue = ImportQueue::new(app.app_handle());
             app.manage(import_queue);
+
+            // start queues
+            let import_queue = app.state::<ImportQueue>();
+            import_queue.start();
 
             Ok(())
         })

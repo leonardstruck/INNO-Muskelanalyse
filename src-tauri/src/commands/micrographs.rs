@@ -15,7 +15,7 @@ pub async fn get_micrographs(
     // get window id
     let id = Uuid::parse_str(window.label()).unwrap();
 
-    let micrographs = state.get_micrographs(id.clone()).unwrap();
+    let micrographs = state.get_micrographs(&id).unwrap();
 
     // convert to portable micrographs
     let portable_micrographs = micrographs
@@ -33,10 +33,10 @@ pub async fn import_micrographs(
     import_queue: tauri::State<'_, ImportQueue>,
     files: Vec<String>,
 ) -> Result<(), String> {
-    let project_id = Uuid::parse_str(window.label()).unwrap();
+    let project_uuid = Uuid::parse_str(window.label()).unwrap();
     // insert micrographs into database
     for file in files {
-        let micrograph_id = Uuid::new_v4().to_string();
+        let micrograph_uuid = Uuid::new_v4();
 
         let micrograph = NewMicrograph {
             created_at: chrono::Local::now().naive_local(),
@@ -48,20 +48,18 @@ pub async fn import_micrographs(
                 path.file_stem().unwrap().to_str().unwrap().into()
             },
             status: crate::models::micrographs::Status::Pending,
-            uuid: micrograph_id.clone(),
+            uuid: micrograph_uuid.to_string(),
             display_img: Vec::new(),
             thumbnail_img: Vec::new(),
             height: None,
             width: None,
         };
 
-        state
-            .add_micrograph(project_id.clone(), micrograph)
-            .unwrap();
+        state.add_micrograph(&project_uuid, micrograph).unwrap();
 
         import_queue.push(ImportQueueItem {
-            project_uuid: project_id.to_string(),
-            micrograph_uuid: micrograph_id.clone(),
+            project_uuid,
+            micrograph_uuid,
         });
     }
 
@@ -77,8 +75,8 @@ pub async fn delete_micrograph(
 ) -> Result<(), String> {
     let project_id = Uuid::parse_str(window.label()).unwrap();
 
-    state.delete_micrograph(project_id, id).unwrap();
-    import_queue.remove(window.label(), id.to_string().as_str());
+    state.delete_micrograph(&project_id, &id).unwrap();
+    import_queue.remove(&project_id, &id);
 
     Ok(())
 }

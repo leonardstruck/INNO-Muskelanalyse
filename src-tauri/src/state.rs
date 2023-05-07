@@ -28,33 +28,31 @@ impl MutableAppState {
         state.windows.insert(window.id, path, window)
     }
 
-    pub fn remove_window(&self, project_id: Uuid) {
+    pub fn remove_window(&self, project_id: &Uuid) {
         let mut state = self.0.lock().unwrap();
         state.windows.remove(&project_id);
     }
 
-    pub fn is_project_already_open(&self, path: String) -> bool {
+    pub fn is_project_already_open(&self, path: &String) -> bool {
         let state = self.0.lock().unwrap();
-        state.windows.contains_key_alt(&path)
+        state.windows.contains_key_alt(path)
     }
 
     // MICROGRAPH
 
     pub fn get_micrograph(
         &self,
-        project_id: Uuid,
-        micrograph_id: Uuid,
+        project_id: &Uuid,
+        micrograph_id: &Uuid,
     ) -> Result<Micrograph, String> {
         use crate::schema::micrographs::dsl::*;
 
         let mut state = self.0.lock().unwrap();
-        let window_state = state.windows.get_mut(&project_id).unwrap();
+        let window_state = state.windows.get_mut(project_id).unwrap();
         let connection = window_state.connection.as_mut().unwrap();
 
-        println!("{}", micrograph_id);
-
         micrographs
-            .filter(uuid.eq(micrograph_id.clone().to_string()))
+            .filter(uuid.eq(micrograph_id.to_string()))
             .first::<Micrograph>(connection)
             .map_err(|err| {
                 format!(
@@ -65,7 +63,7 @@ impl MutableAppState {
             })
     }
 
-    pub fn get_micrographs(&self, project_id: Uuid) -> Result<Vec<Micrograph>, String> {
+    pub fn get_micrographs(&self, project_id: &Uuid) -> Result<Vec<Micrograph>, String> {
         use crate::schema::micrographs::dsl::*;
 
         let mut state = self.0.lock().unwrap();
@@ -80,7 +78,7 @@ impl MutableAppState {
 
     pub fn get_micrographs_by_status(
         &self,
-        project_id: Uuid,
+        project_id: &Uuid,
         status_filter: crate::models::micrographs::Status,
     ) -> Result<Vec<Micrograph>, String> {
         use crate::schema::micrographs::dsl::*;
@@ -98,8 +96,8 @@ impl MutableAppState {
 
     pub fn delete_micrograph(
         &self,
-        project_id: Uuid,
-        micrograph_id: Uuid,
+        project_id: &Uuid,
+        micrograph_id: &Uuid,
     ) -> Result<usize, String> {
         use crate::schema::micrographs::dsl::*;
 
@@ -114,7 +112,7 @@ impl MutableAppState {
 
     pub fn add_micrograph(
         &self,
-        project_id: Uuid,
+        project_id: &Uuid,
         new_micrograph: NewMicrograph,
     ) -> Result<usize, String> {
         use crate::schema::micrographs::dsl::*;
@@ -131,8 +129,8 @@ impl MutableAppState {
 
     pub fn update_micrograph_status(
         &self,
-        project_id: Uuid,
-        micrograph_id: Uuid,
+        project_id: &Uuid,
+        micrograph_id: &Uuid,
         new_status: crate::models::micrographs::Status,
     ) -> Result<usize, String> {
         use crate::schema::micrographs::dsl::*;
@@ -149,8 +147,8 @@ impl MutableAppState {
 
     pub fn store_thumbnail(
         &self,
-        project_id: Uuid,
-        micrograph_id: Uuid,
+        project_id: &Uuid,
+        micrograph_id: &Uuid,
         thumbnail: Vec<u8>,
     ) -> Result<usize, String> {
         use crate::schema::micrographs::dsl::*;
@@ -167,8 +165,8 @@ impl MutableAppState {
 
     pub fn store_display_image(
         &self,
-        project_id: Uuid,
-        micrograph_id: Uuid,
+        project_id: &Uuid,
+        micrograph_id: &Uuid,
         display_image: Vec<u8>,
     ) -> Result<usize, String> {
         use crate::schema::micrographs::dsl::*;
