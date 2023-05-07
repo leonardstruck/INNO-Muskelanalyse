@@ -19,7 +19,7 @@ fn main() {
     // cpp_builder.add_vendor("PROJECT_FOLDER");
     // The project folder must contain a CMakeLists.txt file
 
-    cpp_builder.add_vendor("segmentation");
+    cpp_builder.add_vendor("preprocessing");
 
     cpp_builder.build();
 

@@ -1,0 +1,4 @@
+[submodule "src-tauri/vendor/preprocessing"]
+	path = src-tauri/vendor/preprocessing
+	url = https://github.com/leonardstruck/INNO-Muskelanalyse-Preprocessing.git
+	branch = main
