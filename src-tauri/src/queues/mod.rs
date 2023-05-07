@@ -1,6 +1,7 @@
 use serde::Serialize;
 use ts_rs::TS;
 
+pub mod analysis;
 pub mod import;
 pub mod preprocessing;
 

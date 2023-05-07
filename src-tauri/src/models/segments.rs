@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use crate::schema::segments;
 use chrono::NaiveDateTime;
 use diesel::{
@@ -9,6 +11,7 @@ use diesel::{
     AsExpression, FromSqlRow, Identifiable, Insertable, Queryable,
 };
 use serde::Serialize;
+use tauri::AppHandle;
 use ts_rs::TS;
 
 #[derive(Queryable, Debug, Identifiable)]
@@ -18,6 +21,24 @@ pub struct Segment {
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
     pub binary_img: Vec<u8>,
+    pub location_x: Option<i32>,
+    pub location_y: Option<i32>,
+    pub height: Option<i32>,
+    pub width: Option<i32>,
+    pub measured_length: Option<f32>,
+    pub measured_width: Option<f32>,
+    pub measured_angle: Option<f32>,
+    pub micrograph_id: String,
+    pub status: Status,
+}
+
+#[derive(TS, Serialize)]
+#[ts(export)]
+pub struct CachedSegment {
+    pub uuid: String,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
+    pub binary_img: PathBuf,
     pub location_x: Option<i32>,
     pub location_y: Option<i32>,
     pub height: Option<i32>,
@@ -78,5 +99,48 @@ impl FromSql<Text, Sqlite> for Status {
             "ok" => Ok(Status::Ok),
             _ => Err("Unrecognized enum variant".into()),
         }
+    }
+}
+
+impl Segment {
+    pub fn to_cache(&self, app: &AppHandle) -> CachedSegment {
+        CachedSegment {
+            uuid: self.uuid.clone(),
+            created_at: self.created_at.clone(),
+            updated_at: self.updated_at.clone(),
+            binary_img: self.get_segment_path(app),
+            location_x: self.location_x.clone(),
+            location_y: self.location_y.clone(),
+            height: self.height.clone(),
+            width: self.width.clone(),
+            measured_length: self.measured_length.clone(),
+            measured_width: self.measured_width.clone(),
+            measured_angle: self.measured_angle.clone(),
+            micrograph_id: self.micrograph_id.clone(),
+            status: self.status.clone(),
+        }
+    }
+
+    fn get_segment_path(&self, app: &AppHandle) -> PathBuf {
+        // generate segment path
+        let path = app
+            .path_resolver()
+            .app_cache_dir()
+            .unwrap()
+            .join("segments")
+            .join(format!("{}.png", self.uuid));
+
+        // check if segment already exists
+        if path.exists() {
+            return path;
+        }
+
+        // create necessary directories
+        let _ = std::fs::create_dir_all(path.parent().unwrap());
+
+        // load segment from database and save to disk
+        std::fs::write(&path, &self.binary_img).unwrap();
+
+        path
     }
 }

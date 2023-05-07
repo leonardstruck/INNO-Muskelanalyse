@@ -5,6 +5,7 @@ use uuid::Uuid;
 use crate::{
     models::micrographs::Status,
     queues::{
+        analysis::{AnalysisQueue, AnalysisQueueItem},
         import::{ImportQueue, ImportQueueItem},
         preprocessing::{PreprocessingQueue, PreprocessingQueueItem},
     },
@@ -17,6 +18,7 @@ pub async fn open_project(
     state: tauri::State<'_, MutableAppState>,
     import_queue: tauri::State<'_, ImportQueue>,
     preprocessing_queue: tauri::State<'_, PreprocessingQueue>,
+    analysis_queue: tauri::State<'_, AnalysisQueue>,
     path: String,
 ) -> Result<(), String> {
     // check if there's already a window with this project path
@@ -108,6 +110,18 @@ pub async fn open_project(
         preprocessing_queue.push(PreprocessingQueueItem {
             project_uuid: id.clone(),
             micrograph_uuid: Uuid::parse_str(&micrograph.uuid).unwrap(),
+        })
+    }
+
+    // load new segments from database and add them to the analysis queue
+    let new_segments = state
+        .get_segments_by_status(&id, crate::models::segments::Status::New)
+        .unwrap();
+
+    for segment in new_segments {
+        analysis_queue.push(AnalysisQueueItem {
+            project_uuid: id.clone(),
+            segment_uuid: Uuid::parse_str(&segment.uuid).unwrap(),
         })
     }
 

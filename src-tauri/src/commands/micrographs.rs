@@ -1,7 +1,7 @@
 use uuid::Uuid;
 
 use crate::{
-    models::micrographs::{NewMicrograph, PortableMicrograph},
+    models::micrographs::{CachedMicrograph, NewMicrograph},
     queues::{
         import::{ImportQueue, ImportQueueItem},
         preprocessing::PreprocessingQueue,
@@ -14,7 +14,7 @@ pub async fn get_micrographs(
     app: tauri::AppHandle,
     window: tauri::Window,
     state: tauri::State<'_, MutableAppState>,
-) -> Result<Vec<PortableMicrograph>, String> {
+) -> Result<Vec<CachedMicrograph>, String> {
     // get window id
     let id = Uuid::parse_str(window.label()).unwrap();
 
@@ -23,7 +23,7 @@ pub async fn get_micrographs(
     // convert to portable micrographs
     let portable_micrographs = micrographs
         .into_iter()
-        .map(|micrograph| micrograph.to_portable(&app))
+        .map(|micrograph| micrograph.to_cache(&app))
         .collect();
 
     Ok(portable_micrographs)

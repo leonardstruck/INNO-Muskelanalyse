@@ -53,7 +53,7 @@ pub struct MicrographWithUuidAndStatus {
 
 #[derive(TS, Serialize)]
 #[ts(export)]
-pub struct PortableMicrograph {
+pub struct CachedMicrograph {
     pub uuid: String,
     pub name: String,
     pub import_path: String,
@@ -67,8 +67,8 @@ pub struct PortableMicrograph {
 }
 
 impl Micrograph {
-    pub fn to_portable(&self, app: &AppHandle) -> PortableMicrograph {
-        PortableMicrograph {
+    pub fn to_cache(&self, app: &AppHandle) -> CachedMicrograph {
+        CachedMicrograph {
             uuid: self.uuid.clone(),
             name: self.name.clone(),
             import_path: self.import_path.clone(),
