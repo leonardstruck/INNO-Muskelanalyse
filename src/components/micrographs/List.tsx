@@ -4,6 +4,7 @@ import { MoreVertical, Trash, Trash2 } from "lucide-react";
 import { Fragment } from "react";
 import clsx from "clsx";
 import { useAutoAnimate } from "@formkit/auto-animate/react"
+import { Button } from "../ui/button";
 
 type ListProps = {
     micrographs: PortableMicrograph[]
@@ -61,11 +62,7 @@ const ListItem = ({ micrograph, onDelete }: ListItemProps) => {
                 </div>
             </div>
             <div className="flex flex-none items-center gap-x-4">
-                <a
-                    className="hidden rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:block"
-                >
-                    Open in Viewer<span className="sr-only">, {micrograph.name}</span>
-                </a>
+                <Button disabled={micrograph.status == "Error" || micrograph.status == "Pending"}>Open in Viewer</Button>
                 <Menu as="div" className="relative flex-none">
                     <Menu.Button className="-m-2.5 block p-2.5 text-gray-500 hover:text-white">
                         <span className="sr-only">Open options</span>
