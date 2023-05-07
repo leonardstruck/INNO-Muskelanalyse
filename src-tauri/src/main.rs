@@ -3,7 +3,7 @@
     windows_subsystem = "windows"
 )]
 
-use queues::import::ImportQueue;
+use queues::{import::ImportQueue, preprocessing::PreprocessingQueue};
 use tauri::Manager;
 
 mod commands;
@@ -40,9 +40,15 @@ fn main() {
             let import_queue = ImportQueue::new(app.app_handle());
             app.manage(import_queue);
 
+            let preprocessing_queue = PreprocessingQueue::new(app.app_handle());
+            app.manage(preprocessing_queue);
+
             // start queues
             let import_queue = app.state::<ImportQueue>();
             import_queue.start();
+
+            let preprocessing_queue = app.state::<PreprocessingQueue>();
+            preprocessing_queue.start();
 
             Ok(())
         })
