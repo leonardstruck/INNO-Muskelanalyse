@@ -86,7 +86,11 @@ impl Builder {
     pub fn build(&mut self) {
         self.resolve_requirements();
         build_python_projects(self.paths.clone());
-        self.copy_files();
+
+        // copy files to target directory if paths is not empty
+        if !self.paths.is_empty() {
+            self.copy_files();
+        }
     }
 
     fn copy_files(&self) {
