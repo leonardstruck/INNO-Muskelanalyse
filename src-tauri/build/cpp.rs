@@ -124,9 +124,18 @@ fn build_cpp(path: std::path::PathBuf) -> Bin {
     Bin { path: bin }
 }
 
-fn resolve_libs(bin: std::path::PathBuf) -> Vec<std::path::PathBuf> {
+fn resolve_libs(bin: std::path::PathBuf) -> Vec<std::path::PathBuf> {   
+    let dir = bin.parent().unwrap().join("build");
+
+    // check if there is a Release directory inside the build directory
+    let dir = if dir.join("Release").exists() {
+        dir.join("Release")
+    } else {
+        dir
+    };
+
     // scan build directory for libraries (dlls, so, dylib)
-    let libs = std::fs::read_dir(bin.parent().unwrap().join("build")).unwrap();
+    let libs = std::fs::read_dir(dir).unwrap();
 
     // create a vector of all paths
     let mut paths: Vec<std::path::PathBuf> = Vec::new();
