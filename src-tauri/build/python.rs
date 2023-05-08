@@ -30,7 +30,15 @@ impl Builder {
 
         // check if binary already exists
         let bin_dir = crate::utils::get_bin_dir();
-        if bin_dir.join(name).exists() {
+
+        // generate binary name from vendor directory name and .exe if on windows
+        let name = if cfg!(windows) {
+            format!("{}.exe", name)
+        } else {
+            name.to_string()
+        };
+
+        if bin_dir.join(&name).exists() {
             // check if binary is up to date
             let bin_metadata = std::fs::metadata(bin_dir.join(name)).unwrap();
 
@@ -144,6 +152,8 @@ fn build_python_projects(paths: Vec<std::path::PathBuf>) {
             .arg("nuitka")
             .arg("--static-libpython=no")
             .arg("--standalone")
+            .arg("--assume-yes-for-downloads")
+            .arg("--no-progressbar")
             .arg(format!("--output-filename={}", name))
             .arg(format!(
                 "--output-dir={}",
