@@ -150,8 +150,16 @@ async fn process_item(app_handle: AppHandle, item: PreprocessingQueueItem) {
         .join(&item.project_uuid.to_string())
         .join(&item.micrograph_uuid.to_string());
 
-    // ensure cache directory exists
-    std::fs::create_dir_all(&cache_dir).unwrap();
+    // create cache directory if it does not exist
+    if !cache_dir.exists() {
+        if let Err(err) = std::fs::create_dir_all(&cache_dir) {
+            error!(
+                "Failed to create cache directory for micrograph {}: {}",
+                micrograph.uuid, err
+            );
+            return;
+        }
+    }
 
     let preprocessing = tauri::api::process::Command::new(crate::utils::resolve_bin_path(
         &app_handle,
@@ -161,6 +169,7 @@ async fn process_item(app_handle: AppHandle, item: PreprocessingQueueItem) {
     .args(&[
         micrograph.import_path.replace("\\", "/").as_str(),
         cache_dir.to_str().unwrap().replace("\\", "/").as_str(),
+        cache_dir.join("data.json").to_str().unwrap().replace("\\", "/").as_str(),
     ]);
 
     debug!(
