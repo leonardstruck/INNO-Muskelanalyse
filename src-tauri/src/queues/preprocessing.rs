@@ -183,8 +183,8 @@ async fn process_item(app_handle: AppHandle, item: PreprocessingQueueItem) {
 
     if !preprocessing.status.success() {
         error!(
-            "Preprocessing for {} failed: {}",
-            micrograph.uuid, &preprocessing.stderr
+            "Preprocessing for {} failed: {} {}",
+            micrograph.uuid, &preprocessing.stderr, &preprocessing.stdout
         );
         return;
     }
