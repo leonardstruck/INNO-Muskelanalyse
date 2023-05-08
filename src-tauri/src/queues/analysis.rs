@@ -81,7 +81,7 @@ impl AnalysisQueue {
 }
 
 async fn runner(app_handle: AppHandle) {
-    let workers = 500;
+    let workers = 4;
     let queue = app_handle.state::<self::AnalysisQueue>();
 
     loop {
