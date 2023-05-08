@@ -4,7 +4,10 @@ use std::{collections::VecDeque, sync::Mutex, thread};
 use tauri::{AppHandle, Manager};
 use uuid::Uuid;
 
-use crate::{models::command::CommandResult, state::MutableAppState};
+use crate::{
+    models::{command::CommandResult, segments::SegmentChangeset},
+    state::MutableAppState,
+};
 
 #[derive(Deserialize, Debug, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -148,7 +151,7 @@ async fn process_item(app_handle: AppHandle, item: AnalysisQueueItem) {
         return;
     }
 
-    let mut segment = segment.unwrap();
+    let segment = segment.unwrap();
 
     // load segment to cache
     let segment = segment.to_cache(&app_handle.app_handle());
@@ -214,4 +217,54 @@ async fn process_item(app_handle: AppHandle, item: AnalysisQueueItem) {
         "Successfully parsed analysis output for segment {}: {:?}",
         segment.uuid, analysis
     );
+
+    if analysis.data.is_none() {
+        error!(
+            "Failed to run analysis for segment {}: {:?}",
+            segment.uuid, analysis
+        );
+        return;
+    }
+
+    let analysis = analysis.data.unwrap();
+
+    let (measured_length, measured_width) = {
+        if analysis.direction_a > analysis.direction_b {
+            (analysis.direction_a, analysis.direction_b)
+        } else {
+            (analysis.direction_b, analysis.direction_a)
+        }
+    };
+
+    // store segment in database
+    let update = app_state.update_segment(
+        &item.project_uuid,
+        &SegmentChangeset {
+            uuid: segment.uuid,
+            measured_angle: Some(analysis.angle),
+            measured_length: Some(measured_length),
+            measured_width: Some(measured_width),
+            measured_midpoint_x: Some(analysis.midpoint_x),
+            measured_midpoint_y: Some(analysis.midpoint_y),
+            location_x: None,
+            location_y: None,
+            height: None,
+            width: None,
+            status: {
+                if analysis.status == crate::queues::analysis::AnalysisStatus::Success {
+                    crate::models::segments::Status::Ok
+                } else {
+                    crate::models::segments::Status::Error
+                }
+            },
+        },
+    );
+
+    if update.is_err() {
+        error!(
+            "Failed to update segment {} from project {}",
+            item.segment_uuid, item.project_uuid
+        );
+        return;
+    }
 }

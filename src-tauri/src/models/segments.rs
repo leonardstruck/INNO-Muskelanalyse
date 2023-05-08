@@ -8,7 +8,7 @@ use diesel::{
     serialize::{Output, ToSql},
     sql_types::Text,
     sqlite::Sqlite,
-    AsExpression, FromSqlRow, Identifiable, Insertable, Queryable,
+    AsChangeset, AsExpression, FromSqlRow, Identifiable, Insertable, Queryable,
 };
 use serde::Serialize;
 use tauri::AppHandle;
@@ -30,6 +30,24 @@ pub struct Segment {
     pub measured_angle: Option<f32>,
     pub micrograph_id: String,
     pub status: Status,
+    pub measured_midpoint_x: Option<f32>,
+    pub measured_midpoint_y: Option<f32>,
+}
+
+#[derive(AsChangeset)]
+#[diesel(table_name = segments)]
+pub struct SegmentChangeset {
+    pub uuid: String,
+    pub location_x: Option<i32>,
+    pub location_y: Option<i32>,
+    pub height: Option<i32>,
+    pub width: Option<i32>,
+    pub measured_length: Option<f32>,
+    pub measured_width: Option<f32>,
+    pub measured_angle: Option<f32>,
+    pub measured_midpoint_x: Option<f32>,
+    pub measured_midpoint_y: Option<f32>,
+    pub status: Status,
 }
 
 #[derive(TS, Serialize)]
@@ -46,6 +64,8 @@ pub struct CachedSegment {
     pub measured_length: Option<f32>,
     pub measured_width: Option<f32>,
     pub measured_angle: Option<f32>,
+    pub measured_midpoint_x: Option<f32>,
+    pub measured_midpoint_y: Option<f32>,
     pub micrograph_id: String,
     pub status: Status,
 }
@@ -62,6 +82,8 @@ pub struct NewSegment {
     pub measured_length: Option<f32>,
     pub measured_width: Option<f32>,
     pub measured_angle: Option<f32>,
+    pub measured_midpoint_x: Option<f32>,
+    pub measured_midpoint_y: Option<f32>,
     pub micrograph_id: String,
     pub status: Status,
 }
@@ -116,6 +138,8 @@ impl Segment {
             measured_length: self.measured_length.clone(),
             measured_width: self.measured_width.clone(),
             measured_angle: self.measured_angle.clone(),
+            measured_midpoint_x: self.measured_midpoint_x.clone(),
+            measured_midpoint_y: self.measured_midpoint_y.clone(),
             micrograph_id: self.micrograph_id.clone(),
             status: self.status.clone(),
         }

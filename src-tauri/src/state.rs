@@ -1,6 +1,6 @@
 use crate::models::{
     micrographs::{Micrograph, NewMicrograph},
-    segments::{NewSegment, Segment},
+    segments::{NewSegment, Segment, SegmentChangeset},
 };
 use diesel::{associations::HasTable, prelude::*};
 use log::error;
@@ -242,6 +242,23 @@ impl MutableAppState {
             .map_err(|err| format!("Failed to load segment: {:?}", err));
 
         result
+    }
+
+    pub fn update_segment(
+        &self,
+        project_id: &Uuid,
+        segment: &SegmentChangeset,
+    ) -> Result<usize, String> {
+        use crate::schema::segments::dsl::*;
+
+        let mut state = self.0.lock().unwrap();
+        let window_state = state.windows.get_mut(&project_id).unwrap();
+        let connection = window_state.connection.as_mut().unwrap();
+
+        diesel::update(segments.filter(uuid.eq(segment.uuid.to_string())))
+            .set(segment)
+            .execute(connection)
+            .map_err(|err| format!("Failed to update segment: {:?}", err))
     }
 
     pub fn _get_segments(&self, project_id: &Uuid) -> Result<Vec<Segment>, String> {

@@ -221,6 +221,8 @@ async fn process_item(app_handle: AppHandle, item: PreprocessingQueueItem) {
             measured_angle: None,
             measured_width: None,
             measured_length: None,
+            measured_midpoint_x: None,
+            measured_midpoint_y: None,
             status: Status::New,
             uuid: Uuid::new_v4().to_string(),
             binary_img,
