@@ -244,7 +244,7 @@ impl MutableAppState {
         result
     }
 
-    pub fn get_segments(&self, project_id: &Uuid) -> Result<Vec<Segment>, String> {
+    pub fn _get_segments(&self, project_id: &Uuid) -> Result<Vec<Segment>, String> {
         use crate::schema::segments::dsl::*;
 
         let mut state = self.0.lock().unwrap();
@@ -258,7 +258,7 @@ impl MutableAppState {
         result
     }
 
-    pub fn get_segments_by_micrograph(
+    pub fn _get_segments_by_micrograph(
         &self,
         project_id: &Uuid,
         micrograph_uuid: &Uuid,

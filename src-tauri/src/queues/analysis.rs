@@ -4,7 +4,26 @@ use std::{collections::VecDeque, sync::Mutex, thread};
 use tauri::{AppHandle, Manager};
 use uuid::Uuid;
 
-use crate::{models::segments::Status, state::MutableAppState};
+use crate::{models::command::CommandResult, state::MutableAppState};
+
+#[derive(Deserialize, Debug, Clone, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub enum AnalysisStatus {
+    Success,
+    Error,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AnalysisResult {
+    pub path: String,
+    pub status: AnalysisStatus,
+    pub direction_a: f32,
+    pub direction_b: f32,
+    pub angle: f32,
+    pub midpoint_x: f32,
+    pub midpoint_y: f32,
+}
 
 #[derive(Debug, Clone)]
 pub struct AnalysisQueueItem {
@@ -62,7 +81,7 @@ impl AnalysisQueue {
 }
 
 async fn runner(app_handle: AppHandle) {
-    let workers = 20;
+    let workers = 500;
     let queue = app_handle.state::<self::AnalysisQueue>();
 
     loop {
@@ -73,6 +92,8 @@ async fn runner(app_handle: AppHandle) {
             for _ in 0..workers {
                 if let Some(item) = queue.pop_front() {
                     items.push(item);
+                } else {
+                    break;
                 }
             }
 
@@ -127,7 +148,7 @@ async fn process_item(app_handle: AppHandle, item: AnalysisQueueItem) {
         return;
     }
 
-    let segment = segment.unwrap();
+    let mut segment = segment.unwrap();
 
     // load segment to cache
     let segment = segment.to_cache(&app_handle.app_handle());
@@ -166,5 +187,31 @@ async fn process_item(app_handle: AppHandle, item: AnalysisQueueItem) {
     debug!(
         "Successfully ran analysis for segment {}: {:?}",
         segment.uuid, analysis.stdout
+    );
+
+    // parse analysis output
+    let analysis = serde_json::from_str::<CommandResult<AnalysisResult>>(&analysis.stdout);
+
+    if analysis.is_err() {
+        error!(
+            "Failed to parse analysis output for segment {}: {:?}",
+            segment.uuid, analysis
+        );
+        return;
+    }
+
+    let analysis = analysis.unwrap();
+
+    if analysis.status != crate::models::command::Status::Ok {
+        error!(
+            "Failed to run analysis for segment {}: {:?}",
+            segment.uuid, analysis
+        );
+        return;
+    }
+
+    debug!(
+        "Successfully parsed analysis output for segment {}: {:?}",
+        segment.uuid, analysis
     );
 }
