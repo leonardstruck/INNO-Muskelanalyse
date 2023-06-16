@@ -1,24 +1,18 @@
 use diesel::Connection;
+use log::error;
 use tauri::Manager;
 use uuid::Uuid;
 
 use crate::{
-    models::micrographs::Status,
-    queues::{
-        analysis::{AnalysisQueue, AnalysisQueueItem},
-        import::{ImportQueue, ImportQueueItem},
-        preprocessing::{PreprocessingQueue, PreprocessingQueueItem},
-    },
-    state::{MutableAppState, WindowState},
+    processor::ProcessorState,
+    state::{AppState, WindowState},
 };
 
 #[tauri::command]
 pub async fn open_project(
     app: tauri::AppHandle,
-    state: tauri::State<'_, MutableAppState>,
-    import_queue: tauri::State<'_, ImportQueue>,
-    preprocessing_queue: tauri::State<'_, PreprocessingQueue>,
-    analysis_queue: tauri::State<'_, AnalysisQueue>,
+    state: tauri::State<'_, AppState>,
+    processor_state: tauri::State<'_, ProcessorState>,
     path: String,
 ) -> Result<(), String> {
     // check if there's already a window with this project path
@@ -89,40 +83,12 @@ pub async fn open_project(
 
     state.add_window(new_window, path);
 
-    // load pending micrographs from database and add them to the import queue
-    let pending_micrographs = state
-        .get_micrographs_by_status(&id, Status::Pending)
-        .unwrap();
-
-    for micrograph in pending_micrographs {
-        import_queue.push(ImportQueueItem {
-            project_uuid: id.clone(),
-            micrograph_uuid: Uuid::parse_str(&micrograph.uuid).unwrap(),
-        })
-    }
-
-    // load imported micrographs from database and add them to the preprocessing queue
-    let imported_micrographs = state
-        .get_micrographs_by_status(&id, Status::Imported)
-        .unwrap();
-
-    for micrograph in imported_micrographs {
-        preprocessing_queue.push(PreprocessingQueueItem {
-            project_uuid: id.clone(),
-            micrograph_uuid: Uuid::parse_str(&micrograph.uuid).unwrap(),
-        })
-    }
-
-    // load new segments from database and add them to the analysis queue
-    let new_segments = state
-        .get_segments_by_status(&id, crate::models::segments::Status::New)
-        .unwrap();
-
-    for segment in new_segments {
-        analysis_queue.push(AnalysisQueueItem {
-            project_uuid: id.clone(),
-            segment_uuid: Uuid::parse_str(&segment.uuid).unwrap(),
-        })
+    // populate processor
+    match processor_state.populate(&app, &id) {
+        Ok(_) => {}
+        Err(e) => {
+            error!("Error populating processor: {}", e);
+        }
     }
 
     // open new window

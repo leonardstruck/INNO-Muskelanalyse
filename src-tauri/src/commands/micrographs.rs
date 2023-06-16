@@ -1,19 +1,18 @@
+use log::{debug, error};
+use tauri::Manager;
 use uuid::Uuid;
 
 use crate::{
     models::micrographs::{CachedMicrograph, NewMicrograph},
-    queues::{
-        import::{ImportQueue, ImportQueueItem},
-        preprocessing::PreprocessingQueue,
-    },
-    state::MutableAppState,
+    processor::ProcessorState,
+    state::AppState,
 };
 
 #[tauri::command]
 pub async fn get_micrographs(
     app: tauri::AppHandle,
     window: tauri::Window,
-    state: tauri::State<'_, MutableAppState>,
+    state: tauri::State<'_, AppState>,
 ) -> Result<Vec<CachedMicrograph>, String> {
     // get window id
     let id = Uuid::parse_str(window.label()).unwrap();
@@ -31,12 +30,16 @@ pub async fn get_micrographs(
 
 #[tauri::command]
 pub async fn import_micrographs(
+    app: tauri::AppHandle,
     window: tauri::Window,
-    state: tauri::State<'_, MutableAppState>,
-    import_queue: tauri::State<'_, ImportQueue>,
+    state: tauri::State<'_, AppState>,
+    processor: tauri::State<'_, ProcessorState>,
     files: Vec<String>,
 ) -> Result<(), String> {
     let project_uuid = Uuid::parse_str(window.label()).unwrap();
+
+    debug!("Importing micrographs: {:?}", files);
+
     // insert micrographs into database
     for file in files {
         let micrograph_uuid = Uuid::new_v4();
@@ -59,11 +62,14 @@ pub async fn import_micrographs(
         };
 
         state.add_micrograph(&project_uuid, micrograph).unwrap();
+    }
 
-        import_queue.push(ImportQueueItem {
-            project_uuid,
-            micrograph_uuid,
-        });
+    // populate processor
+    match processor.populate(&app, &project_uuid) {
+        Ok(_) => {}
+        Err(e) => {
+            error!("Error populating processor: {}", e);
+        }
     }
 
     Ok(())
@@ -72,16 +78,12 @@ pub async fn import_micrographs(
 #[tauri::command]
 pub async fn delete_micrograph(
     window: tauri::Window,
-    state: tauri::State<'_, MutableAppState>,
-    import_queue: tauri::State<'_, ImportQueue>,
-    preprocessing_queue: tauri::State<'_, PreprocessingQueue>,
+    state: tauri::State<'_, AppState>,
     id: uuid::Uuid,
 ) -> Result<(), String> {
     let project_id = Uuid::parse_str(window.label()).unwrap();
 
     state.delete_micrograph(&project_id, &id).unwrap();
-    import_queue.remove(&project_id, &id);
-    preprocessing_queue.remove(&project_id, &id);
 
     Ok(())
 }

@@ -1,42 +1,36 @@
+use image::{self, imageops::FilterType, io::Reader};
+use log::debug;
+use std::fs::File;
+use std::io::BufReader;
+
 pub fn generate_thumbnail(path: String) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
-    // generate thumbnail
-    let thumbnail_buffer = {
-        let file = std::fs::File::open(path).expect("Failed to open file");
+    // Open the file
+    let file = File::open(&path)?;
+    let reader = BufReader::new(file);
 
-        let reader = std::io::BufReader::new(file);
+    // Create Image Reader and turn off size limits
+    let mut image_reader = Reader::new(reader).with_guessed_format()?;
 
-        let mut image_reader = image::io::Reader::new(reader)
-            .with_guessed_format()
-            .expect("Failed to read micrograph");
+    image_reader.no_limits();
 
-        image_reader.no_limits();
+    // Decode the image
+    let image = image_reader.decode()?;
 
-        let image = image_reader.decode().unwrap();
+    // Get the aspect ratio of the image
+    let aspect_ratio = image.width() as f32 / image.height() as f32;
 
-        // get aspect ratio of micrograph
-        let aspect_ratio = image.width() as f32 / image.height() as f32;
-
-        // calculate thumbnail size
-        let thumbnail_size = if aspect_ratio > 1.0 {
-            (512, (512.0 / aspect_ratio) as u32)
-        } else {
-            (((512.0 * aspect_ratio) as u32), 512)
-        };
-
-        // create thumbnail
-        let thumbnail = image
-            .resize(
-                thumbnail_size.0,
-                thumbnail_size.1,
-                image::imageops::FilterType::Lanczos3,
-            )
-            .to_rgb16();
-
-        thumbnail
+    // Calculate the thumbnail size
+    let thumbnail_size = if aspect_ratio > 1.0 {
+        (512, (512.0 / aspect_ratio) as u32)
+    } else {
+        (((512.0 * aspect_ratio) as u32), 512)
     };
 
-    // convert thumbnail to binary vec<u8>
-    let thumbnail_bin = convert_image_to_binary(thumbnail_buffer)?;
+    // Create the thumbnail
+    let thumbnail = image.resize_exact(thumbnail_size.0, thumbnail_size.1, FilterType::Lanczos3);
+
+    // Convert the thumbnail to a binary Vec<u8>
+    let thumbnail_bin = thumbnail.to_rgb8().into_vec();
 
     Ok(thumbnail_bin)
 }
@@ -84,12 +78,10 @@ fn convert_image_to_binary(
     image: image::ImageBuffer<image::Rgb<u16>, Vec<u16>>,
 ) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
     let mut buffer = Vec::new();
-    image
-        .write_to(
-            &mut std::io::Cursor::new(&mut buffer),
-            image::ImageOutputFormat::Png,
-        )
-        .expect("Failed to write thumbnail to buffer");
+    image.write_to(
+        &mut std::io::Cursor::new(&mut buffer),
+        image::ImageOutputFormat::Png,
+    )?;
 
     Ok(buffer)
 }
