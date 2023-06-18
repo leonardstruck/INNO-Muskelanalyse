@@ -28,6 +28,10 @@ fn main() {
             use tauri::WindowEvent;
 
             if let WindowEvent::CloseRequested { .. } = event.event() {
+                // skip if the window is a viewer
+                if event.window().label().starts_with("viewer") {
+                    return;
+                }
                 // get state
                 let app = event.window().app_handle();
                 let state = app.state::<state::AppState>();

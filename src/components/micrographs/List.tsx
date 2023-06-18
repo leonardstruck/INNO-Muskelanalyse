@@ -73,7 +73,9 @@ const ListItem = ({ micrograph, onDelete }: ListItemProps) => {
                 )}
             </div>
             <div className="flex flex-none items-center gap-x-4">
-                <Button disabled={micrograph.status == "Error" || micrograph.status == "Pending"}>Open in Viewer</Button>
+                <Button disabled={micrograph.status == "Error" || micrograph.status == "Pending"}
+                    onClick={() => openViewer(micrograph.uuid)}
+                >Open in Viewer</Button>
                 <Menu as="div" className="relative flex-none">
                     <Menu.Button className="-m-2.5 block p-2.5 text-gray-500 hover:text-white">
                         <span className="sr-only">Open options</span>
@@ -147,4 +149,15 @@ type ProcessorStatus = {
 
 const getProcessorStatus = async (micrographId: string) => {
     return await invoke<ProcessorStatus>("get_processor_status", { micrographId });
+}
+
+const openViewer = async (micrographId: string) => {
+    const { WebviewWindow, getCurrent } = await import("@tauri-apps/api/window")
+    // get the current window label
+    const project_id = getCurrent().label;
+    console.log(project_id)
+    const webview = new WebviewWindow(`viewer:${project_id}:${micrographId}`, {
+        url: "/viewer",
+        title: `Viewer`,
+    });
 }

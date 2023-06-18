@@ -1,4 +1,6 @@
+import { useRouter } from 'next/router'
 import Sidebar from './Sidebar'
+import { useEffect } from 'react'
 
 
 type MainLayoutProps = {
@@ -6,7 +8,6 @@ type MainLayoutProps = {
 }
 
 const MainLayout = ({ children }: MainLayoutProps) => {
-
     return (
         <>
             <div className="h-full">

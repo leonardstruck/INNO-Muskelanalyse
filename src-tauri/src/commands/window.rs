@@ -92,13 +92,16 @@ pub async fn open_project(
     }
 
     // open new window
-    let _new_window =
-        tauri::WindowBuilder::new(&app, id.to_string(), tauri::WindowUrl::App("main".into()))
-            .title(format!("Project: {}", file_name))
-            .min_inner_size(650.0, 500.0)
-            .theme(Some(tauri::Theme::Dark))
-            .build()
-            .unwrap();
+    let _new_window = tauri::WindowBuilder::new(
+        &app,
+        id.to_string(),
+        tauri::WindowUrl::App("main/micrographs".into()),
+    )
+    .title(format!("Project: {}", file_name))
+    .min_inner_size(650.0, 500.0)
+    .theme(Some(tauri::Theme::Dark))
+    .build()
+    .unwrap();
 
     if app.windows().get("welcome").is_some() {
         app.windows().get("welcome").unwrap().close().unwrap();
