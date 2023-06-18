@@ -36,7 +36,7 @@ impl ProcessorState {
 }
 
 impl Processor {
-    pub fn populate(&self) {
+    pub fn populate(&mut self) {
         use crate::models::micrographs::Status;
 
         // get app state
@@ -72,6 +72,7 @@ impl Processor {
                     "Micrograph {} is segmented, skipping preprocessing",
                     self.micrograph_id
                 );
+                self.run_analysis()
             }
             Status::Done => {
                 debug!(

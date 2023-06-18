@@ -72,7 +72,7 @@ impl AppState {
         result
     }
 
-    pub fn _get_segments_by_micrograph(
+    pub fn get_segments_by_micrograph(
         &self,
         project_id: &Uuid,
         micrograph_uuid: &Uuid,

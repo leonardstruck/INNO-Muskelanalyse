@@ -1,3 +1,5 @@
+use tauri::api::process::Command;
+
 pub fn resolve_bin_dir(app: &tauri::AppHandle) -> std::path::PathBuf {
     let resource_dir = app.path_resolver().resource_dir().unwrap();
 
@@ -55,4 +57,44 @@ pub fn resolve_file_association() -> Result<FileAssociation, ()> {
             .map(|extension| extension.as_str().unwrap().to_string())
             .collect(),
     })
+}
+
+pub fn python_command(app: tauri::AppHandle, name: &str) -> Result<Command, String> {
+    let resource_path = app
+        .path_resolver()
+        .resource_dir()
+        .ok_or_else(|| "Failed to get resource dir".to_string())?;
+
+    let vendor_dir = resource_path.join("vendor");
+    let main_py_path = vendor_dir.join(name).join("main.py");
+
+    // check if main.py exists
+    if !main_py_path.exists() {
+        return Err(format!(
+            "Failed to find main.py for vendor: {}",
+            main_py_path.to_str().unwrap()
+        ));
+    }
+
+    // resolve venv path
+    let venv_path = app
+        .path_resolver()
+        .app_data_dir()
+        .unwrap()
+        .join("venv")
+        .join(name);
+
+    // check if venv exists
+    if !venv_path.exists() {
+        return Err(format!(
+            "Failed to find venv for vendor: {}",
+            venv_path.to_str().unwrap()
+        ));
+    }
+
+    let command = Command::new("python3")
+        .args([main_py_path.to_str().unwrap()])
+        .current_dir(venv_path.join("bin"));
+
+    Ok(command)
 }

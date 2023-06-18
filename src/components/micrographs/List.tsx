@@ -5,6 +5,8 @@ import { Fragment } from "react";
 import clsx from "clsx";
 import { useAutoAnimate } from "@formkit/auto-animate/react"
 import { Button } from "../ui/button";
+import { useQuery } from "@tanstack/react-query";
+import { invoke } from "@tauri-apps/api/tauri";
 
 type ListProps = {
     micrographs: PortableMicrograph[]
@@ -37,6 +39,11 @@ type ListItemProps = {
     onDelete: (uuid: string) => void
 }
 const ListItem = ({ micrograph, onDelete }: ListItemProps) => {
+    const { data } = useQuery(["processor_status", micrograph.uuid], () => getProcessorStatus(micrograph.uuid), {
+        enabled: micrograph.status != "Done" && micrograph.status != "Error",
+        refetchInterval: 1000
+    });
+
     return (
         <li key={micrograph.uuid} className="flex items-center justify-between gap-x-6 py-5">
             <div className="min-w-0">
@@ -50,6 +57,7 @@ const ListItem = ({ micrograph, onDelete }: ListItemProps) => {
                     >
                         {micrograph.status}
                     </p>
+                    <p>{data?.current_step && `${data.current_step} / ${data?.total_steps}`}</p>
                 </div>
                 <div className="mt-1 flex items-center gap-x-2 text-xs leading-5 text-gray-400">
                     <p className="whitespace-nowrap">
@@ -127,3 +135,13 @@ const ListItem = ({ micrograph, onDelete }: ListItemProps) => {
 }
 
 export default List;
+
+type ProcessorStatus = {
+    status: string
+    current_step: number,
+    total_steps: number,
+}
+
+const getProcessorStatus = async (micrographId: string) => {
+    return await invoke<ProcessorStatus>("get_processor_status", { micrographId });
+}

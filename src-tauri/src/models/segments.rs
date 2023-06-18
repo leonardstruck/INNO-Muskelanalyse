@@ -47,7 +47,7 @@ pub struct SegmentChangeset {
     pub measured_angle: Option<f32>,
     pub measured_midpoint_x: Option<f32>,
     pub measured_midpoint_y: Option<f32>,
-    pub status: Status,
+    pub status: Option<Status>,
 }
 
 #[derive(TS, Serialize)]

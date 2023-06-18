@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use crate::{models::segments::NewSegment, state::AppState};
-use log::debug;
+use log::{debug, error};
 use serde::Deserialize;
 use tauri::Manager;
 
@@ -120,16 +120,30 @@ impl Processor {
 
                             match state.add_segments(&project_id, segments) {
                                 Ok(_) => {
-                                    debug!("Successfully added segments to database");
                                     // update micrograph status
-                                    state.update_micrograph_status(
+                                    match state.update_micrograph_status(
                                         &project_id,
                                         &micrograph_id,
                                         crate::models::micrographs::Status::Segmented,
-                                    );
+                                    ) {
+                                        Ok(_) => {
+                                            debug!("Successfully added segments to database");
+                                        }
+                                        Err(err) => {
+                                            error!("Failed to update micrograph status: {:?}", err);
+                                        }
+                                    }
 
                                     // send event to frontend
-                                    app.emit_to(&project_id.to_string(), "UPDATE_MICROGRAPHS", ());
+                                    let _ = app.emit_to(
+                                        &project_id.to_string(),
+                                        "UPDATE_MICROGRAPHS",
+                                        (),
+                                    );
+
+                                    // kick off analysis
+                                    let processor_state = app.state::<ProcessorState>();
+                                    processor_state.run_analysis(&micrograph_id);
                                 }
                                 Err(err) => {
                                     log::error!("Failed to add segments to database: {:?}", err);
