@@ -1,6 +1,6 @@
 import { Menu, Transition } from "@headlessui/react";
 import { PortableMicrograph } from "../../../src-tauri/bindings/PortableMicrograph";
-import { MoreVertical, Trash, Trash2 } from "lucide-react";
+import { MoreVertical, Trash, Trash2, FileUp } from "lucide-react";
 import { Fragment } from "react";
 import clsx from "clsx";
 import { useAutoAnimate } from "@formkit/auto-animate/react"
@@ -11,16 +11,17 @@ import { LinearProgress, } from "@mui/material";
 
 type ListProps = {
     micrographs: PortableMicrograph[]
-    onDelete: (uuid: string) => void
+    onDelete: (uuid: string) => void,
+    onExport: (uuid: string) => void,
 }
 
-const List = ({ micrographs, onDelete }: ListProps) => {
+const List = ({ micrographs, onDelete, onExport }: ListProps) => {
     const [animationParent] = useAutoAnimate();
     return (
         <div>
             <ul role="list" className="divide-y divide-gray-700" ref={animationParent}>
                 {micrographs.map((micrograph) => (
-                    <ListItem key={micrograph.uuid} micrograph={micrograph} onDelete={onDelete} />
+                    <ListItem key={micrograph.uuid} micrograph={micrograph} onDelete={onDelete} onExport={onExport} />
                 ))}
             </ul>
         </div>
@@ -38,8 +39,9 @@ const statuses = {
 type ListItemProps = {
     micrograph: PortableMicrograph
     onDelete: (uuid: string) => void
+    onExport: (uuid: string) => void
 }
-const ListItem = ({ micrograph, onDelete }: ListItemProps) => {
+const ListItem = ({ micrograph, onDelete, onExport }: ListItemProps) => {
     const [animationParent] = useAutoAnimate();
     const { data } = useQuery(["processor_status", micrograph.uuid], () => getProcessorStatus(micrograph.uuid), {
         onError: (err) => {
@@ -128,6 +130,19 @@ const ListItem = ({ micrograph, onDelete }: ListItemProps) => {
                                         )}
                                     >
                                         <Trash2 className="h-4 w-4 inline mr-2" />Delete<span className="sr-only">, {micrograph.name}</span>
+                                    </a>
+                                )}
+                            </Menu.Item>
+                            <Menu.Item>
+                                {({ active }) => (
+                                    <a
+                                        onClick={() => onExport(micrograph.uuid)}
+                                        className={clsx(
+                                            active ? 'bg-gray-100' : '',
+                                            'block px-3 py-1 text-sm leading-6 text-gray-900 cursor-pointer'
+                                        )}
+                                    >
+                                        <FileUp className="h-4 w-4 inline mr-2" />Export CSV<span className="sr-only">, {micrograph.name}</span>
                                     </a>
                                 )}
                             </Menu.Item>

@@ -33,6 +33,7 @@ const MicrographsPage = () => {
             refetch();
         }
     });
+    const { mutate: mutate_export } = useMutation(["export_micrograph"], exportMicrograph);
 
     if (isLoading) {
         return (
@@ -62,7 +63,7 @@ const MicrographsPage = () => {
                 </div>
             </Tab.List>
             <Tab.Panels className={"mt-4"}>
-                <Tab.Panel><List micrographs={data} onDelete={mutate_delete} /></Tab.Panel>
+                <Tab.Panel><List micrographs={data} onDelete={mutate_delete} onExport={mutate_export} /></Tab.Panel>
                 <Tab.Panel>Grid View</Tab.Panel>
             </Tab.Panels>
         </Tab.Group>
@@ -121,6 +122,24 @@ const deleteMicrograph = async (uuid: string) => {
     }
 
     return invoke("delete_micrograph", { id: uuid })
+}
+
+const exportMicrograph = async (uuid: string) => {
+    const dialog = await import("@tauri-apps/api/dialog");
+
+    const result = await dialog.save({
+        filters: [{
+            name: "CSV",
+            extensions: ["csv"]
+        }],
+        defaultPath: uuid
+    })
+
+    if (!result) {
+        return
+    }
+
+    return invoke("export_csv", { micrographId: uuid, path: result })
 }
 
 export default MicrographsPage;
