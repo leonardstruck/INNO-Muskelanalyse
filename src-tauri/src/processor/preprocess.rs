@@ -17,17 +17,6 @@ struct PreprocessingResultItem {
     width: usize,
 }
 
-impl ProcessorState {
-    pub fn preprocess(&self, micrograph_id: &Uuid) {
-        let mut state = self.0.lock().unwrap();
-        let processor = state
-            .processors
-            .get_mut(&micrograph_id.to_string())
-            .unwrap();
-        processor.preprocess();
-    }
-}
-
 impl Processor {
     pub fn preprocess(&self) {
         let app = self.app.app_handle();
@@ -143,7 +132,16 @@ impl Processor {
 
                                     // kick off analysis
                                     let processor_state = app.state::<ProcessorState>();
-                                    processor_state.run_analysis(&micrograph_id);
+                                    let processor = processor_state.0.get(&project_id.to_string());
+
+                                    match processor {
+                                        Some(processor) => {
+                                            processor.run_analysis();
+                                        }
+                                        None => {
+                                            error!("Failed to get processor");
+                                        }
+                                    }
                                 }
                                 Err(err) => {
                                     log::error!("Failed to add segments to database: {:?}", err);

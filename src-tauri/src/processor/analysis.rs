@@ -36,17 +36,6 @@ struct AnalysisOutput {
     data: AnalysisResult,
 }
 
-impl ProcessorState {
-    pub fn run_analysis(&self, micrograph_id: &Uuid) {
-        let mut state = self.0.lock().unwrap();
-        let processor = state
-            .processors
-            .get_mut(&micrograph_id.to_string())
-            .unwrap();
-        processor.run_analysis();
-    }
-}
-
 impl Processor {
     pub fn run_analysis(&self) {
         let app = self.app.app_handle();

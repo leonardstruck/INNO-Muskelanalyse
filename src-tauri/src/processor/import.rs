@@ -54,7 +54,18 @@ impl Processor {
                         .unwrap();
 
                     // kick off preprocessing
-                    processor_state.preprocess(&micrograph_id);
+                    let processor_state = app.state::<ProcessorState>();
+
+                    let processor = processor_state.0.get(&micrograph_id.to_string());
+
+                    match processor {
+                        Some(processor) => {
+                            processor.preprocess();
+                        }
+                        None => {
+                            debug!("No processor found for micrograph: {:?}", micrograph_id);
+                        }
+                    }
 
                     // send event to project window to update micrographs
                     app.emit_to(&project_id.to_string(), "UPDATE_MICROGRAPHS", ())

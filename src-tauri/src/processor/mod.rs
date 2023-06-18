@@ -1,5 +1,3 @@
-use std::{collections::HashMap, sync::Mutex};
-
 use serde::Serialize;
 use uuid::Uuid;
 
@@ -9,12 +7,7 @@ mod populate;
 mod preprocess;
 
 #[derive(Default)]
-pub struct ProcessorState(pub Mutex<InnerProcessorState>);
-
-#[derive(Default)]
-pub struct InnerProcessorState {
-    pub processors: HashMap<String, Processor>,
-}
+pub struct ProcessorState(pub chashmap::CHashMap<String, Processor>);
 
 #[derive(Serialize, Clone)]
 pub enum Status {
@@ -32,12 +25,8 @@ pub struct Processor {
 
 impl ProcessorState {
     fn add_processor(&self, processor: Processor) {
-        let mut state = self.0.lock().unwrap();
-
-        state
-            .processors
-            .entry(processor.micrograph_id.to_string())
-            .or_insert(processor);
+        self.0
+            .insert(processor.micrograph_id.to_string(), processor);
     }
 }
 
