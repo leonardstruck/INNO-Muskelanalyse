@@ -4,7 +4,6 @@ use uuid::Uuid;
 
 use crate::{
     models::segments::{Segment, SegmentChangeset, Status},
-    processor::ProcessorStatus,
     state::AppState,
     utils,
 };
