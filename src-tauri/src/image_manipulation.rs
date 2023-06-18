@@ -1,5 +1,4 @@
 use image::{self, imageops::FilterType, io::Reader};
-use log::debug;
 use std::fs::File;
 use std::io::BufReader;
 

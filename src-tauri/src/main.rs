@@ -17,7 +17,7 @@ mod utils;
 
 fn main() {
     tauri::Builder::default()
-        .setup(|app| {
+        .setup(|_app| {
             env_logger::init();
             Ok(())
         })

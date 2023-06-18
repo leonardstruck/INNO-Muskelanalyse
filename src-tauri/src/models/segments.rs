@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use crate::schema::segments;
 use chrono::NaiveDateTime;
 use diesel::{
-    backend::RawValue,
+    backend::Backend,
     deserialize::FromSql,
     serialize::{Output, ToSql},
     sql_types::Text,
@@ -112,7 +112,7 @@ impl ToSql<Text, Sqlite> for Status {
 }
 
 impl FromSql<Text, Sqlite> for Status {
-    fn from_sql(bytes: RawValue<Sqlite>) -> diesel::deserialize::Result<Self> {
+    fn from_sql<'a>(bytes: <Sqlite as Backend>::RawValue<'a>) -> diesel::deserialize::Result<Self> {
         let s = <String as FromSql<Text, Sqlite>>::from_sql(bytes)?;
         match s.as_str() {
             "new" => Ok(Status::New),

@@ -1,5 +1,4 @@
 use log::{debug, error};
-use tauri::Manager;
 use uuid::Uuid;
 
 use crate::{

@@ -42,7 +42,6 @@ impl Processor {
                     if micrograph.status == crate::models::micrographs::Status::Pending {
                         debug!("Micrograph was not imported yet, importing it now and skipping preprocessing");
                         todo!("Import micrograph");
-                        return;
                     }
 
                     // verify that the micrograph path still exists
