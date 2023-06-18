@@ -19,6 +19,7 @@ fn main() {
     tauri::Builder::default()
         .setup(|_app| {
             env_logger::init();
+
             Ok(())
         })
         .menu(menu::create_menu())
@@ -39,6 +40,7 @@ fn main() {
         .manage(state::AppState(Default::default()))
         .manage(processor::ProcessorState(Default::default()))
         .invoke_handler(tauri::generate_handler![
+            crate::commands::resolve_requirements::check_requirements,
             crate::commands::window::open_project,
             crate::commands::micrographs::get_micrographs,
             crate::commands::micrographs::import_micrographs,

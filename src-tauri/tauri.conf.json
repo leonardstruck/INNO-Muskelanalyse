@@ -33,13 +33,7 @@
         "all": false,
         "open": true,
         "sidecar": true,
-        "execute": true,
-        "scope": [
-          {
-            "name": "target/bin/**/*",
-            "sidecar": true
-          }
-        ]
+        "execute": true
       },
       "window": {
         "all": false,
@@ -68,7 +62,7 @@
         "setSize": false,
         "setSkipTaskbar": false,
         "setTitle": false,
-        "show": false,
+        "show": true,
         "startDragging": true,
         "unmaximize": false,
         "unminimize": false
@@ -105,7 +99,8 @@
         "timestampUrl": ""
       },
       "resources": [
-        "target/bin/**/*"
+        "target/bin/**/*",
+        "vendor/**/*"
       ]
     },
     "security": {
@@ -123,7 +118,8 @@
         "width": 600,
         "url": "welcome",
         "title": "Welcome",
-        "decorations": false
+        "decorations": false,
+        "visible": true
       }
     ]
   }
