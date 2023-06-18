@@ -1,16 +1,16 @@
 use log::debug;
 use tauri::Manager;
-use uuid::Uuid;
 
 use crate::{
     models::segments::{Segment, SegmentChangeset, Status},
+    processor::ProcessorState,
     state::AppState,
     utils,
 };
 
 use serde::Deserialize;
 
-use super::{Processor, ProcessorState};
+use super::Processor;
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -61,6 +61,17 @@ impl Processor {
                 .collect();
 
             debug!("Found {} segments to analyze", segments.len());
+
+            // update total cound of jobs in processor state (wrapped in mutex)
+            {
+                let processor_state = app.state::<ProcessorState>();
+                let mut processor_state = processor_state
+                    .0
+                    .get_mut(&micrograph_id.to_string())
+                    .unwrap();
+                processor_state.total_jobs = Some(segments.len());
+                processor_state.completed_jobs = Some(0);
+            }
 
             // iterate over segments and run analysis
             for segment in segments {
@@ -115,6 +126,27 @@ impl Processor {
                     Ok(_) => debug!("Successfully updated segment"),
                     Err(err) => debug!("Failed to update segment: {:?}", err),
                 }
+
+                // update job count in processor state (wrapped in mutex)
+                {
+                    let processor_state = app.state::<ProcessorState>();
+                    let mut processor_state = processor_state
+                        .0
+                        .get_mut(&micrograph_id.to_string())
+                        .unwrap();
+                    processor_state.completed_jobs = processor_state.completed_jobs.map(|x| x + 1);
+                }
+            }
+
+            // update processor state
+            {
+                let processor_state = app.state::<ProcessorState>();
+                let mut processor_state = processor_state
+                    .0
+                    .get_mut(&micrograph_id.to_string())
+                    .unwrap();
+                processor_state.total_jobs = None;
+                processor_state.completed_jobs = None;
             }
 
             // update micrograph status

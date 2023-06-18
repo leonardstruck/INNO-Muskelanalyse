@@ -7,6 +7,7 @@ import { useAutoAnimate } from "@formkit/auto-animate/react"
 import { Button } from "../ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { invoke } from "@tauri-apps/api/tauri";
+import { LinearProgress, } from "@mui/material";
 
 type ListProps = {
     micrographs: PortableMicrograph[]
@@ -39,14 +40,20 @@ type ListItemProps = {
     onDelete: (uuid: string) => void
 }
 const ListItem = ({ micrograph, onDelete }: ListItemProps) => {
+    const [animationParent] = useAutoAnimate();
     const { data } = useQuery(["processor_status", micrograph.uuid], () => getProcessorStatus(micrograph.uuid), {
-        enabled: micrograph.status != "Done" && micrograph.status != "Error",
-        refetchInterval: 1000
+        onError: (err) => {
+            console.error(err);
+        },
+        onSuccess: (data) => {
+            console.log(data);
+        },
+        refetchInterval: 200
     });
 
     return (
         <li key={micrograph.uuid} className="flex items-center justify-between gap-x-6 py-5">
-            <div className="min-w-0">
+            <div className="min-w-0 w-full max-w-lg space-y-2" ref={animationParent}>
                 <div className="flex items-start gap-x-3">
                     <p className="text-sm font-semibold leading-6 text-white">{micrograph.name}</p>
                     <p
@@ -57,17 +64,13 @@ const ListItem = ({ micrograph, onDelete }: ListItemProps) => {
                     >
                         {micrograph.status}
                     </p>
-                    <p>{data?.current_step && `${data.current_step} / ${data?.total_steps}`}</p>
                 </div>
-                <div className="mt-1 flex items-center gap-x-2 text-xs leading-5 text-gray-400">
-                    <p className="whitespace-nowrap">
-                        Imported on <time dateTime={micrograph.created_at}>{micrograph.created_at}</time>
-                    </p>
-                    <svg viewBox="0 0 2 2" className="h-0.5 w-0.5 fill-current">
-                        <circle cx={1} cy={1} r={1} />
-                    </svg>
-                    <p className="truncate">Created by </p>
-                </div>
+                {micrograph.status != "Done" && micrograph.status != "Error" && (
+                    <div className="flex items-center">
+                        <LinearProgress variant={data?.total_jobs ? "determinate" : "indeterminate"} value={data?.total_jobs ? ((data.completed_jobs / data.total_jobs) * 100) : undefined} className="w-full mr-2" />
+                        {data?.total_jobs && <span className="tabular-nums">{Math.floor((data?.completed_jobs / data?.total_jobs) * 100)}%</span>}
+                    </div>
+                )}
             </div>
             <div className="flex flex-none items-center gap-x-4">
                 <Button disabled={micrograph.status == "Error" || micrograph.status == "Pending"}>Open in Viewer</Button>
@@ -138,8 +141,8 @@ export default List;
 
 type ProcessorStatus = {
     status: string
-    current_step: number,
-    total_steps: number,
+    total_jobs: number,
+    completed_jobs: number,
 }
 
 const getProcessorStatus = async (micrographId: string) => {

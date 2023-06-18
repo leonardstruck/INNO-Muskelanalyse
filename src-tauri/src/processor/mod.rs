@@ -21,6 +21,8 @@ pub struct Processor {
     pub micrograph_id: Uuid,
     pub project_id: Uuid,
     pub status: Status,
+    pub total_jobs: Option<usize>,
+    pub completed_jobs: Option<usize>,
 }
 
 impl ProcessorState {
@@ -37,6 +39,8 @@ impl Processor {
             micrograph_id: micrograph_id.to_owned(),
             project_id: project_id.to_owned(),
             status: Status::Preparing,
+            total_jobs: None,
+            completed_jobs: None,
         };
 
         processor.populate();

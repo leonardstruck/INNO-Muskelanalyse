@@ -79,8 +79,14 @@ impl Processor {
                                 output.stdout, output.stderr
                             );
 
+                            // trim output to the actual JSON (remove warnings)
+                            // trim from the first '[' to the last ']'
+                            let output = output.stdout;
+                            let output = output.trim_start_matches(|c| c != '[');
+                            let output = output.trim_end_matches(|c| c != ']');
+
                             let result: Vec<PreprocessingResultItem> =
-                                serde_json::from_str(&output.stdout).unwrap();
+                                serde_json::from_str(&output).unwrap();
 
                             debug!("Preprocessing result: {:?}", result);
 
@@ -132,7 +138,8 @@ impl Processor {
 
                                     // kick off analysis
                                     let processor_state = app.state::<ProcessorState>();
-                                    let processor = processor_state.0.get(&project_id.to_string());
+                                    let processor =
+                                        processor_state.0.get(&micrograph_id.to_string());
 
                                     match processor {
                                         Some(processor) => {
