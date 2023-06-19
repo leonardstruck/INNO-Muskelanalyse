@@ -28,6 +28,28 @@ pub async fn get_micrographs(
 }
 
 #[tauri::command]
+pub async fn get_micrograph(
+    app: tauri::AppHandle,
+    window: tauri::Window,
+    state: tauri::State<'_, AppState>,
+    micrograph_id: String,
+    project_id: String,
+) -> Result<Option<CachedMicrograph>, String> {
+    let project_id = Uuid::parse_str(&project_id).unwrap();
+    let micrograph_id = Uuid::parse_str(&micrograph_id).unwrap();
+
+    let micrographs = match state.get_micrograph(&project_id, &micrograph_id) {
+        Ok(micrographs) => micrographs,
+        Err(_) => return Err("Failed to get micrograph".into()),
+    };
+
+    // convert to portable micrograph
+    let portable_micrograph = micrographs.to_cache(&app);
+
+    Ok(Some(portable_micrograph))
+}
+
+#[tauri::command]
 pub async fn import_micrographs(
     app: tauri::AppHandle,
     window: tauri::Window,

@@ -84,3 +84,26 @@ fn convert_image_to_binary(
 
     Ok(buffer)
 }
+
+pub struct Dimensions {
+    pub width: u32,
+    pub height: u32,
+}
+pub fn get_dimensions(path: String) -> Result<Dimensions, String> {
+    let file = std::fs::File::open(path).expect("Failed to open file");
+
+    let reader = std::io::BufReader::new(file);
+
+    let mut image_reader = image::io::Reader::new(reader)
+        .with_guessed_format()
+        .expect("Failed to read micrograph");
+
+    image_reader.no_limits();
+
+    let image = image_reader.decode().unwrap();
+
+    Ok(Dimensions {
+        width: image.width(),
+        height: image.height(),
+    })
+}

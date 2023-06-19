@@ -48,8 +48,10 @@ fn main() {
             crate::commands::processor::get_processor_status,
             crate::commands::window::open_project,
             crate::commands::micrographs::get_micrographs,
+            crate::commands::micrographs::get_micrograph,
             crate::commands::micrographs::import_micrographs,
             crate::commands::micrographs::delete_micrograph,
+            crate::commands::segments::get_segments,
             crate::commands::csv::export_csv,
         ])
         .run(tauri::generate_context!())

@@ -1,5 +1,8 @@
 use super::AppState;
-use crate::models::micrographs::{Micrograph, NewMicrograph};
+use crate::{
+    image_manipulation::Dimensions,
+    models::micrographs::{Micrograph, NewMicrograph},
+};
 use diesel::prelude::*;
 use uuid::Uuid;
 
@@ -194,5 +197,26 @@ impl AppState {
             .set(display_img.eq(display_image))
             .execute(connection)
             .map_err(|err| format!("Failed to store display image in database: {:?}", err))
+    }
+
+    pub fn store_dimensions(
+        &self,
+        project_id: &Uuid,
+        micrograph_id: &Uuid,
+        dimensions: Dimensions,
+    ) -> Result<usize, String> {
+        use crate::schema::micrographs::dsl::*;
+
+        let mut state = self.0.lock().unwrap();
+        let window_state = state.windows.get_mut(&project_id).unwrap();
+        let connection = window_state.connection.as_mut().unwrap();
+
+        diesel::update(micrographs.filter(uuid.eq(micrograph_id.to_string())))
+            .set((
+                width.eq(dimensions.width as i32),
+                height.eq(dimensions.height as i32),
+            ))
+            .execute(connection)
+            .map_err(|err| format!("Failed to store dimensions in database: {:?}", err))
     }
 }

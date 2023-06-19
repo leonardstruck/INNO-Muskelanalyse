@@ -14,7 +14,6 @@ impl Processor {
             debug!("Importing micrograph: {:?}", micrograph_id);
 
             let state = app.state::<AppState>();
-            let processor_state = app.state::<ProcessorState>();
 
             match state.get_micrograph(&project_id, &micrograph_id) {
                 Ok(micrograph) => {
@@ -47,6 +46,20 @@ impl Processor {
                             return;
                         }
                     };
+
+                    match crate::image_manipulation::get_dimensions(micrograph.import_path.clone())
+                    {
+                        Ok(dimensions) => {
+                            debug!("Got dimensions for micrograph: {:?}", micrograph_id);
+                            state
+                                .store_dimensions(&project_id, &micrograph_id, dimensions)
+                                .unwrap();
+                        }
+                        Err(err) => {
+                            error!("Failed to get dimensions: {:?}", err);
+                            return;
+                        }
+                    }
 
                     // update micrograph status
                     state

@@ -23,7 +23,8 @@
       "protocol": {
         "asset": true,
         "assetScope": [
-          "$APPDATA/micrographs/**/*"
+          "$APPDATA/micrographs/**/*",
+          "$APPCACHE/**/*"
         ]
       },
       "path": {

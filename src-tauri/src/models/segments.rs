@@ -89,7 +89,7 @@ pub struct NewSegment {
 }
 
 #[derive(AsExpression, FromSqlRow, Debug, Copy, Clone, Serialize, TS, PartialEq)]
-#[ts(export)]
+#[ts(export, rename = "SegmentStatus")]
 #[diesel(sql_type = Text)]
 pub enum Status {
     New,
