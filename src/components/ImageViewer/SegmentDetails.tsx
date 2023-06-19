@@ -1,24 +1,24 @@
 import { convertFileSrc, invoke } from '@tauri-apps/api/tauri'
 import Image from 'next/image'
-import useSWR from 'swr'
 
-import Loading from '../layout/Loading'
-
-import type { Segment } from '../../../src-tauri/bindings/Segment';
-import { ArrowUpIcon } from '@heroicons/react/24/outline';
+import { CachedSegment } from '../../../src-tauri/bindings/CachedSegment';
+import { Loader2, ChevronsUpDown } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 
 export type SegmentDetailsProps = {
-    segment: Segment;
+    segment: CachedSegment;
 };
 
 const SegmentDetails = ({ segment }: SegmentDetailsProps) => {
-    const { data: image, error, isLoading } = useSWR(
-        `/api/segments/${segment.uuid}/image`,
-        () => fetcher(segment));
-
+    const { data: image, isLoading, error } = useQuery<string, string>([`/api/segments/${segment.uuid}/image`], () => fetcher(segment));
 
     if (error) return <div>Beim Laden ist ein Fehler aufgetreten: {error}</div>
-    if (isLoading) return <Loading />
+    if (isLoading) return (
+        <div className="w-full h-full flex flex-col justify-center items-center gap-8">
+            <Loader2 className="h-16 w-16 animate-spin" />
+        </div>
+    )
+
 
     return (
         <div className="grid grid-cols-2 gap-2">
@@ -26,12 +26,12 @@ const SegmentDetails = ({ segment }: SegmentDetailsProps) => {
                 {image && segment.width && segment.height && <Image src={image} width={segment.width} height={segment.height} alt="" />}
             </div>
             <div>
-                {segment.status === 'new' ? <span>Segment wird analysiert</span> : (
+                {segment.status != "Ok" ? <span>Segment is being analysed</span> : (
                     <div className="text-sm py-4">
-                        <p className="font-bold">Länge: </p><span>{segment.measured_length}</span>
-                        <p className="font-bold">Breite: </p><span>{segment.measured_width}</span>
-                        <p className="font-bold">Ausrichtung: </p><span>{segment.measured_angle}° </span>
-                        <ArrowUpIcon className="w-10 m-auto" style={{ rotate: `${Math.floor(segment.measured_angle ?? 0) - 90}deg` }} />
+                        <p className="font-bold">Length: </p><span>{Math.floor(segment.measured_length!)}</span>
+                        <p className="font-bold">Width: </p><span>{Math.floor(segment.measured_width!)}</span>
+                        <p className="font-bold">Angle: </p><span>{segment.measured_angle}° </span>
+                        <ChevronsUpDown className="w-10 m-auto" style={{ rotate: `${Math.floor(segment.measured_angle ?? 0)}deg` }} />
                     </div>
 
                 )}
@@ -40,12 +40,8 @@ const SegmentDetails = ({ segment }: SegmentDetailsProps) => {
     )
 }
 
-const fetcher = async (segment: Segment) => {
-    const path = await import('@tauri-apps/api/path')
-    const appDir = await path.appDataDir();
-
-    const segmentPath = `${appDir}/micrographs/${segment.micrograph_id}/segments/${segment.filename}`;
-    const image = await convertFileSrc(segmentPath);
+const fetcher = async (segment: CachedSegment) => {
+    const image = convertFileSrc(segment.binary_img);
 
     return image;
 }

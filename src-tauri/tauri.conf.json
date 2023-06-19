@@ -14,12 +14,17 @@
     "allowlist": {
       "all": false,
       "dialog": {
-        "open": true
+        "all": false,
+        "open": true,
+        "save": true,
+        "message": true,
+        "confirm": true
       },
       "protocol": {
         "asset": true,
         "assetScope": [
-          "$APPDATA/micrographs/**/*"
+          "$APPDATA/micrographs/**/*",
+          "$APPCACHE/**/*"
         ]
       },
       "path": {
@@ -29,13 +34,39 @@
         "all": false,
         "open": true,
         "sidecar": true,
-        "execute": true,
-        "scope": [
-          {
-            "name": "target/bin/**/*",
-            "sidecar": true
-          }
-        ]
+        "execute": true
+      },
+      "window": {
+        "all": false,
+        "center": false,
+        "close": true,
+        "create": true,
+        "hide": false,
+        "maximize": false,
+        "minimize": false,
+        "print": false,
+        "requestUserAttention": false,
+        "setAlwaysOnTop": false,
+        "setCursorGrab": false,
+        "setCursorIcon": false,
+        "setCursorPosition": false,
+        "setCursorVisible": false,
+        "setDecorations": false,
+        "setFocus": false,
+        "setFullscreen": false,
+        "setIcon": false,
+        "setIgnoreCursorEvents": false,
+        "setMaxSize": false,
+        "setMinSize": false,
+        "setPosition": false,
+        "setResizable": false,
+        "setSize": false,
+        "setSkipTaskbar": false,
+        "setTitle": false,
+        "show": true,
+        "startDragging": true,
+        "unmaximize": false,
+        "unminimize": false
       }
     },
     "bundle": {
@@ -69,7 +100,8 @@
         "timestampUrl": ""
       },
       "resources": [
-        "target/bin/**/*"
+        "target/bin/**/*",
+        "vendor/**/*"
       ]
     },
     "security": {
@@ -80,13 +112,15 @@
     },
     "windows": [
       {
+        "label": "welcome",
         "fullscreen": false,
-        "height": 600,
-        "resizable": true,
-        "width": 800,
-        "minHeight": 600,
-        "minWidth": 800,
-        "title": "INNO Muskelanalyse"
+        "height": 400,
+        "resizable": false,
+        "width": 600,
+        "url": "welcome",
+        "title": "Welcome",
+        "decorations": false,
+        "visible": true
       }
     ]
   }

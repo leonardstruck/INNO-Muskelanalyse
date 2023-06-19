@@ -3,45 +3,57 @@
     windows_subsystem = "windows"
 )]
 
-mod commands;
-mod data;
-mod models;
-mod schema;
-mod tasks;
-mod utils;
-
 use tauri::Manager;
 
-use data::PoolState;
+mod commands;
+mod image_manipulation;
+mod menu;
+mod migrations;
+mod models;
+mod processor;
+mod schema;
+mod state;
+mod utils;
 
 fn main() {
     tauri::Builder::default()
-        .manage(PoolState)
-        .setup(|app| {
-            let app_handle = app.handle();
-
-            // get connection pool and store in state
-            let pool = data::get_connection_pool(app_handle);
-            let mut connection = pool.get().unwrap();
-            app.manage(PoolState(pool));
-
-            // run migrations
-            data::run_migrations(&mut connection);
+        .setup(|_app| {
+            env_logger::init();
 
             Ok(())
         })
+        .menu(menu::create_menu())
+        .on_menu_event(menu::menu_event_handler)
+        .on_window_event(|event| {
+            use tauri::WindowEvent;
+
+            if let WindowEvent::CloseRequested { .. } = event.event() {
+                // skip if the window is a viewer
+                if event.window().label().starts_with("viewer") {
+                    return;
+                }
+                // get state
+                let app = event.window().app_handle();
+                let state = app.state::<state::AppState>();
+
+                let project_id = uuid::Uuid::parse_str(event.window().label()).unwrap();
+
+                state.remove_window(&project_id);
+            }
+        })
+        .manage(state::AppState(Default::default()))
+        .manage(processor::ProcessorState(Default::default()))
         .invoke_handler(tauri::generate_handler![
-            crate::commands::case::get_cases,
-            crate::commands::case::get_case,
-            crate::commands::case::create_case,
-            crate::commands::case::delete_case,
-            crate::commands::micrograph::get_micrographs,
-            crate::commands::micrograph::get_micrograph,
-            crate::commands::micrograph::import_micrographs,
-            crate::commands::segment::get_segments,
-            crate::commands::segment::get_segment
+            crate::commands::resolve_requirements::check_requirements,
+            crate::commands::processor::get_processor_status,
+            crate::commands::window::open_project,
+            crate::commands::micrographs::get_micrographs,
+            crate::commands::micrographs::get_micrograph,
+            crate::commands::micrographs::import_micrographs,
+            crate::commands::micrographs::delete_micrograph,
+            crate::commands::segments::get_segments,
+            crate::commands::csv::export_csv,
         ])
-        .plugin(tauri_plugin_window_state::Builder::default().build())
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

@@ -1,19 +1,39 @@
 import type { AppProps } from "next/app";
-import Layout from "../components/layout/Layout";
-
-import '@tremor/react/dist/esm/tremor.css';
 
 import "../style.css";
 
-import { Teko } from "@next/font/google";
+import { Teko, Rubik } from "next/font/google";
+import clsx from "clsx";
+import { NextPage } from "next";
+import MainLayout from "../components/layouts/main";
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
-const teko = Teko({
-  variable: "--font-teko",
+const rubik = Rubik({
+  variable: "--font-rubik",
   subsets: ["latin"],
-  weight: "400"
+  weight: "variable"
 })
 
-// This default export is required in a new `pages/_app.js` file.
-export default function MyApp({ Component, pageProps }: AppProps) {
-  return <div className={teko.variable}><Layout><Component {...pageProps} /></Layout></div>;
+
+export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
+  getLayout?: (page: React.ReactElement) => React.ReactNode
+}
+
+type AppPropsWithLayout = AppProps & {
+  Component: NextPageWithLayout
+}
+
+const queryClient = new QueryClient()
+
+export default function MyApp({ Component, pageProps }: AppPropsWithLayout) {
+  // use the layout defined at the page level, if available
+  const getLayout = Component.getLayout ?? ((page) => <MainLayout>{page}</MainLayout>)
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <div className={clsx(rubik.variable, "h-full font-sans")}>
+        {getLayout(<Component {...pageProps} />)}
+      </div>
+    </QueryClientProvider>
+  );
 }

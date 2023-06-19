@@ -1,3 +1,4 @@
-pub mod case;
-pub mod micrograph;
-pub mod segment;
+pub mod command;
+pub mod config;
+pub mod micrographs;
+pub mod segments;

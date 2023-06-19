@@ -85,7 +85,7 @@ impl Builder {
         let bin_dir = crate::utils::get_bin_dir();
 
         for bin in &self.bins {
-            let out_path = bin_dir.join(&bin.path.file_name().unwrap());
+            let out_path = bin_dir.join(bin.path.file_name().unwrap());
 
             // copy file only if bin is newer than the existing one
             if !out_path.exists()
@@ -102,11 +102,7 @@ fn build_cpp(path: std::path::PathBuf) -> Bin {
     use cmake::Config;
 
     let path_binding = path.clone();
-    let stripped_path = path_binding
-        .clone()
-        .to_str()
-        .unwrap()
-        .replace("\\\\?\\", "");
+    let stripped_path = path_binding.to_str().unwrap().replace("\\\\?\\", "");
 
     let name = path.file_name().unwrap().to_str().unwrap();
 
@@ -128,9 +124,18 @@ fn build_cpp(path: std::path::PathBuf) -> Bin {
     Bin { path: bin }
 }
 
-fn resolve_libs(bin: std::path::PathBuf) -> Vec<std::path::PathBuf> {
+fn resolve_libs(bin: std::path::PathBuf) -> Vec<std::path::PathBuf> {   
+    let dir = bin.parent().unwrap().join("build");
+
+    // check if there is a Release directory inside the build directory
+    let dir = if dir.join("Release").exists() {
+        dir.join("Release")
+    } else {
+        dir
+    };
+
     // scan build directory for libraries (dlls, so, dylib)
-    let libs = std::fs::read_dir(bin.parent().unwrap().join("build")).unwrap();
+    let libs = std::fs::read_dir(dir).unwrap();
 
     // create a vector of all paths
     let mut paths: Vec<std::path::PathBuf> = Vec::new();
