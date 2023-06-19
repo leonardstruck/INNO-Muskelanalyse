@@ -101,6 +101,8 @@ impl Processor {
                     Ok(output) => output,
                     Err(err) => {
                         debug!("Failed to parse python output: {:?}", err);
+                        debug!("Python output: {:?}", output.stdout);
+                        debug!("Python error: {:?}", output.stderr);
                         return;
                     }
                 };

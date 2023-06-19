@@ -23,6 +23,13 @@ pub async fn check_requirements(
         }
         Err(e) => {
             error!("Error checking if python is installed: {}", e);
+            message(
+                Some(&window),
+                "Error: Python 3 is not installed",
+                "This application requires Python 3 to be installed. Please install Python 3 and try again",
+
+            );
+            app.exit(1)
         }
         Ok(true) => {
             debug!("Python is installed")
@@ -54,14 +61,18 @@ pub async fn check_requirements(
 }
 
 fn check_if_python_is_installed() -> Result<bool, String> {
-    let output = Command::new("python3")
+    let output = match Command::new("python")
         .args(["--version"])
-        .output()
-        .expect("failed to execute process");
+        .output() {
+            Ok(output) => output,
+            Err(_) => {
+                return Ok(false)
+            }
+        };
 
     let output = output.stdout;
 
-    if output.contains("Python 3") {
+    if output.contains("Python") {
         Ok(true)
     } else {
         Ok(false)
@@ -75,6 +86,7 @@ fn get_vendor_dir(app: tauri::AppHandle) -> Result<PathBuf, String> {
         .ok_or_else(|| "Failed to get resource dir".to_string())?;
 
     let vendor_dir = resource_path.join("vendor");
+    let vendor_dir = dunce::canonicalize(vendor_dir).map_err(|e| e.to_string())?;
 
     Ok(vendor_dir)
 }
@@ -114,7 +126,7 @@ fn ensure_python_venv(app: tauri::AppHandle, path: PathBuf) -> Result<(), String
         .join(venv_name);
 
     if !venv_path.exists() {
-        let output = Command::new("python3")
+        let output = Command::new("python")
             .args(["-m", "venv", venv_path.to_str().unwrap()])
             .output()
             .map_err(|e| e.to_string())?;
@@ -147,13 +159,19 @@ fn install_dependencies(app: tauri::AppHandle, path: PathBuf) -> Result<(), Stri
         .join(venv_name);
 
     let requirements_path = path.join("requirements.txt");
+    let requirements_path = dunce::canonicalize(requirements_path).map_err(|e| e.to_string())?;
 
     debug!(
         "Installing dependencies from {:?} in {:?}",
         requirements_path, venv_path
     );
 
-    let pip_path = venv_path.join("bin").join("pip");
+    let pip_path = match std::env::consts::OS {
+        "windows" => venv_path.join("Scripts").join("pip.exe"),
+        _ => venv_path.join("bin").join("pip"),
+    };
+
+    let pip_path = dunce::canonicalize(pip_path).map_err(|e| e.to_string())?;
 
     // install dependencies inside virtual environment
     let output = Command::new(pip_path.to_str().unwrap())

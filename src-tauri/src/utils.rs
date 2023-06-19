@@ -65,6 +65,8 @@ pub fn python_command(app: tauri::AppHandle, name: &str) -> Result<Command, Stri
         .resource_dir()
         .ok_or_else(|| "Failed to get resource dir".to_string())?;
 
+    let resource_path = dunce::canonicalize(resource_path).map_err(|e| e.to_string())?;
+
     let vendor_dir = resource_path.join("vendor");
     let main_py_path = vendor_dir.join(name).join("main.py");
 
@@ -84,6 +86,8 @@ pub fn python_command(app: tauri::AppHandle, name: &str) -> Result<Command, Stri
         .join("venv")
         .join(name);
 
+    let venv_path = dunce::canonicalize(venv_path).map_err(|e| e.to_string())?;
+
     // check if venv exists
     if !venv_path.exists() {
         return Err(format!(
@@ -92,7 +96,10 @@ pub fn python_command(app: tauri::AppHandle, name: &str) -> Result<Command, Stri
         ));
     }
 
-    let python_path = venv_path.join("bin").join("python3");
+    let python_path = match cfg!(target_os = "windows") {
+        true => venv_path.join("Scripts").join("python.exe"),
+        false => venv_path.join("bin").join("python"),
+    };
 
     // check if python3 exists
     if !python_path.exists() {

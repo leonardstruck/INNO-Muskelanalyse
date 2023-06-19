@@ -38,6 +38,8 @@ env_logger = "0.10.0"
 log = "0.4"
 chashmap = "2.2.2"
 csv = "1.2"
+dunce = "1.0.4"
+tauri-plugin-log = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v1" }
 
 
 [features]

@@ -4,6 +4,7 @@
 )]
 
 use tauri::Manager;
+use tauri_plugin_log::{LogTarget};
 
 mod commands;
 mod image_manipulation;
@@ -17,11 +18,6 @@ mod utils;
 
 fn main() {
     tauri::Builder::default()
-        .setup(|_app| {
-            env_logger::init();
-
-            Ok(())
-        })
         .menu(menu::create_menu())
         .on_menu_event(menu::menu_event_handler)
         .on_window_event(|event| {
@@ -54,6 +50,11 @@ fn main() {
             crate::commands::segments::get_segments,
             crate::commands::csv::export_csv,
         ])
+        .plugin(tauri_plugin_log::Builder::default().targets([
+            LogTarget::LogDir,
+            LogTarget::Stdout,
+            LogTarget::Webview,
+        ]).build())    
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

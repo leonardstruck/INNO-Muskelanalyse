@@ -7,6 +7,7 @@ import clsx from "clsx";
 import { NextPage } from "next";
 import MainLayout from "../components/layouts/main";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { useEffect } from "react";
 
 const rubik = Rubik({
   variable: "--font-rubik",
@@ -28,6 +29,14 @@ const queryClient = new QueryClient()
 export default function MyApp({ Component, pageProps }: AppPropsWithLayout) {
   // use the layout defined at the page level, if available
   const getLayout = Component.getLayout ?? ((page) => <MainLayout>{page}</MainLayout>)
+  useEffect(() => {
+    import("tauri-plugin-log-api").then((log) => {
+      log.attachConsole().then((detach) => {
+        console.log("attached console")
+        return detach
+      });
+    })
+  },[])
 
   return (
     <QueryClientProvider client={queryClient}>
