@@ -20,7 +20,7 @@ const MicrographsPage = () => {
         return () => {
             unlisten.then((f) => f());
         }
-    }, []);
+    }, [refetch]);
 
     const { mutate: mutate_import } = useMutation(["import_micrographs"], importMicrographs, {
         onSuccess: () => {

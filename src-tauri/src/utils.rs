@@ -92,9 +92,27 @@ pub fn python_command(app: tauri::AppHandle, name: &str) -> Result<Command, Stri
         ));
     }
 
-    let command = Command::new("python3")
-        .args([main_py_path.to_str().unwrap()])
-        .current_dir(venv_path.join("bin"));
+    let python_path = venv_path.join("bin").join("python3");
+
+    // check if python3 exists
+    if !python_path.exists() {
+        return Err(format!(
+            "Failed to find python3 for vendor: {}",
+            python_path.to_str().unwrap()
+        ));
+    }
+
+    let python_path = match python_path.to_str() {
+        Some(python_path) => python_path,
+        None => {
+            return Err(format!(
+                "Failed to convert python path to string: {:?}",
+                python_path
+            ))
+        }
+    };
+
+    let command = Command::new(python_path).args([main_py_path.to_str().unwrap()]);
 
     Ok(command)
 }
