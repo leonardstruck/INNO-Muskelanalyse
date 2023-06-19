@@ -1,11 +1,11 @@
 import { useRouter } from "next/router"
-import type { NextPageWithLayout } from "../../_app"
+import type { NextPageWithLayout } from "../_app"
 import { useQuery } from "@tanstack/react-query";
 import { invoke } from "@tauri-apps/api/tauri";
 import { Loader2 } from "lucide-react";
-import ImageViewer from "../../../components/ImageViewer";
-import { CachedMicrograph } from "../../../../src-tauri/bindings/CachedMicrograph";
-import { CachedSegment } from "../../../../src-tauri/bindings/CachedSegment";
+import ImageViewer from "../../components/ImageViewer";
+import { CachedMicrograph } from "../../../src-tauri/bindings/CachedMicrograph";
+import { CachedSegment } from "../../../src-tauri/bindings/CachedSegment";
 const Page: NextPageWithLayout = () => {
     const { query } = useRouter();
     const { data, isLoading } = useQuery<{ micrograph: CachedMicrograph, segments: CachedSegment[] }>(["micrograph", query.project, query.micrograph], async () => {
@@ -16,9 +16,6 @@ const Page: NextPageWithLayout = () => {
     },
         {
             enabled: !!query.project && !!query.micrograph,
-            onSuccess(data) {
-                console.log(data);
-            },
             refetchInterval(data, query) {
                 if (data?.micrograph.status == "Done") {
                     return false;
