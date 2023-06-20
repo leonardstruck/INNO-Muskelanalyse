@@ -39,6 +39,7 @@ chashmap = "2.2.2"
 csv = "1.2"
 dunce = "1.0.4"
 tauri-plugin-log = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v1" }
+fix-path-env = { git = "https://github.com/tauri-apps/fix-path-env-rs", branch = "dev" }
 
 
 [features]

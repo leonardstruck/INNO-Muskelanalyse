@@ -35,8 +35,8 @@ pub struct FileAssociation {
 }
 
 pub fn resolve_file_association() -> Result<FileAssociation, ()> {
-    // open package.json
-    let package_json = std::fs::read_to_string("../package.json").unwrap();
+    // load package.json (static file)
+    let package_json = include_str!("../../package.json");
 
     // parse package.json
     let package_json: serde_json::Value = serde_json::from_str(&package_json).unwrap();

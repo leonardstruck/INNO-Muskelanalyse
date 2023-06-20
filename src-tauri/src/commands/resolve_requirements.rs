@@ -61,18 +61,25 @@ pub async fn check_requirements(
 }
 
 fn check_if_python_is_installed() -> Result<bool, String> {
-    let output = match Command::new("python")
-        .args(["--version"])
-        .output() {
-            Ok(output) => output,
-            Err(_) => {
-                return Ok(false)
-            }
-        };
+    let output = match Command::new("python").args(["--version"]).output() {
+        Ok(output) => output,
+        Err(error) => {
+            error!("Failed to check if python is installed: {}", error);
+            return Err(format!("Failed to check if python is installed: {}", error));
+        }
+    };
 
-    let output = output.stdout;
+    // check if process was successful
+    if !output.status.success() {
+        return Err(format!(
+            "Failed to check if python is installed: {}",
+            output.stderr
+        ));
+    }
 
-    if output.contains("Python") {
+    debug!("Python version: {},{}", output.stdout, output.stderr);
+
+    if output.stdout.contains("Python") {
         Ok(true)
     } else {
         Ok(false)
