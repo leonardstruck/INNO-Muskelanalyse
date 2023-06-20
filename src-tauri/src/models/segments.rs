@@ -14,7 +14,7 @@ use serde::Serialize;
 use tauri::AppHandle;
 use ts_rs::TS;
 
-#[derive(Queryable, Debug, Identifiable)]
+#[derive(Queryable, Debug, Identifiable, Clone)]
 #[diesel(primary_key(uuid))]
 pub struct Segment {
     pub uuid: String,

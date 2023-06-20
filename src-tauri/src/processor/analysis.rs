@@ -33,7 +33,7 @@ struct AnalysisResult {
 #[derive(Deserialize, Debug)]
 struct AnalysisOutput {
     status: String,
-    data: AnalysisResult,
+    data: Vec<AnalysisResult>,
 }
 
 impl Processor {
@@ -73,9 +73,12 @@ impl Processor {
                 processor_state.completed_jobs = Some(0);
             }
 
+            // split segments into chunks of 50
+            let segment_chunks: Vec<Vec<Segment>> = segments.chunks(50).map(|x| x.to_vec()).collect();
+
             // iterate over segments and run analysis
-            for segment in segments {
-                debug!("Analyzing segment: {:?}", segment.uuid);
+            for segment_chunk in segment_chunks {
+                debug!("Analyzing segments: {:?}", segment_chunk.iter().map(|x| x.uuid.clone()).collect::<Vec<String>>());
                 let mut command = match utils::python_command(app.app_handle(), "analysis") {
                     Ok(command) => command,
                     Err(err) => {
@@ -84,9 +87,17 @@ impl Processor {
                     }
                 };
 
-                let cached_segment = segment.to_cache(&app.app_handle());
+                let cached_segments = segment_chunk
+                    .iter()
+                    .map(|segment| segment.to_cache(&app.app_handle()))
+                    .collect::<Vec<_>>();
 
-                command = command.args([cached_segment.binary_img.to_str().unwrap()]);
+                let image_paths = cached_segments
+                    .iter()
+                    .map(|segment| segment.binary_img.to_str().unwrap())
+                    .collect::<Vec<_>>();
+
+                command = command.args(&image_paths);
 
                 let output = match command.output() {
                     Ok(output) => output,
@@ -108,36 +119,38 @@ impl Processor {
                 };
 
                 // store analysis results in database
-                let analysis_result = analysis_output.data;
+                let analysis_results = analysis_output.data;
 
-                let changeset = SegmentChangeset {
-                    uuid: segment.uuid,
-                    measured_angle: Some(analysis_result.angle),
-                    measured_length: Some(analysis_result.direction_a),
-                    measured_width: Some(analysis_result.direction_b),
-                    measured_midpoint_x: Some(analysis_result.midpoint_x),
-                    measured_midpoint_y: Some(analysis_result.midpoint_y),
-                    height: None,
-                    width: None,
-                    location_x: None,
-                    location_y: None,
-                    status: Some(Status::Ok),
-                };
-
-                match state.update_segment(&project_id, &changeset) {
-                    Ok(_) => debug!("Successfully updated segment"),
-                    Err(err) => debug!("Failed to update segment: {:?}", err),
-                }
-
-                // update job count in processor state (wrapped in mutex)
-                {
-                    let processor_state = app.state::<ProcessorState>();
-                    let mut processor_state = processor_state
-                        .0
-                        .get_mut(&micrograph_id.to_string())
-                        .unwrap();
-                    processor_state.completed_jobs = processor_state.completed_jobs.map(|x| x + 1);
-                }
+                for (index, analysis_result) in analysis_results.iter().enumerate() {
+                    let changeset = SegmentChangeset {
+                        uuid: cached_segments[index].uuid.clone(),
+                        measured_angle: Some(analysis_result.angle),
+                        measured_length: Some(analysis_result.direction_a),
+                        measured_width: Some(analysis_result.direction_b),
+                        measured_midpoint_x: Some(analysis_result.midpoint_x),
+                        measured_midpoint_y: Some(analysis_result.midpoint_y),
+                        height: None,
+                        width: None,
+                        location_x: None,
+                        location_y: None,
+                        status: Some(Status::Ok),
+                    };
+    
+                    match state.update_segment(&project_id, &changeset) {
+                        Err(err) => debug!("Failed to update segment: {:?}", err),
+                        _ => (),
+                    }
+    
+                    // update job count in processor state (wrapped in mutex)
+                    {
+                        let processor_state = app.state::<ProcessorState>();
+                        let mut processor_state = processor_state
+                            .0
+                            .get_mut(&micrograph_id.to_string())
+                            .unwrap();
+                        processor_state.completed_jobs = processor_state.completed_jobs.map(|x| x + 1);
+                    }
+                }    
             }
 
             // update processor state
