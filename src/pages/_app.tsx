@@ -36,13 +36,22 @@ export default function MyApp({ Component, pageProps }: AppPropsWithLayout) {
         return detach
       });
     })
-  },[])
+  }, [])
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <div className={clsx(rubik.variable, "h-full font-sans")}>
-        {getLayout(<Component {...pageProps} />)}
-      </div>
-    </QueryClientProvider>
+    <>
+      <style jsx global>
+        {`
+          :root {
+            --font-rubik: ${rubik.style.fontFamily};
+          }
+        `}
+      </style>
+      <QueryClientProvider client={queryClient}>
+        <div className="h-full font-sans">
+          {getLayout(<Component {...pageProps} />)}
+        </div>
+      </QueryClientProvider>
+    </>
   );
 }

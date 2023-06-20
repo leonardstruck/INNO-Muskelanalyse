@@ -30,8 +30,8 @@ const SegmentDetails = ({ segment }: SegmentDetailsProps) => {
                     <div className="text-sm py-4">
                         <p className="font-bold">Length: </p><span>{Math.floor(segment.measured_length!)}</span>
                         <p className="font-bold">Width: </p><span>{Math.floor(segment.measured_width!)}</span>
-                        <p className="font-bold">Angle: </p><span>{segment.measured_angle}° </span>
-                        <ChevronsUpDown className="w-10 m-auto" style={{ rotate: `${Math.floor(segment.measured_angle ?? 0)}deg` }} />
+                        <p className="font-bold">Angle: </p><span>{Math.floor(segment.measured_angle!)}° </span>
+                        <ChevronsUpDown className="w-10 m-auto rotate-90" style={{ rotate: `${Math.floor(segment.measured_angle ?? 0)}deg` }} />
                     </div>
 
                 )}
