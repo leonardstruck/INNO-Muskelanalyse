@@ -19,7 +19,6 @@ struct Record {
 
 #[tauri::command]
 pub async fn export_csv(
-    app: tauri::AppHandle,
     window: tauri::Window,
     micrograph_id: String,
     path: String,

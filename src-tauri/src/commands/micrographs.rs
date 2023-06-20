@@ -30,7 +30,6 @@ pub async fn get_micrographs(
 #[tauri::command]
 pub async fn get_micrograph(
     app: tauri::AppHandle,
-    window: tauri::Window,
     state: tauri::State<'_, AppState>,
     micrograph_id: String,
     project_id: String,

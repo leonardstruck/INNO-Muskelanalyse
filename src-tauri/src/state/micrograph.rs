@@ -67,7 +67,7 @@ impl AppState {
             .map_err(|err| format!("Failed to load micrographs: {:?}", err))
     }
 
-    pub fn get_micrographs_by_status(
+    pub fn _get_micrographs_by_status(
         &self,
         project_id: &Uuid,
         status_filter: crate::models::micrographs::Status,

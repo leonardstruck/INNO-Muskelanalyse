@@ -10,8 +10,6 @@ pub struct ProcessorStatus {
 
 #[tauri::command]
 pub async fn get_processor_status(
-    app: tauri::AppHandle,
-    window: tauri::Window,
     processor_state: tauri::State<'_, ProcessorState>,
     micrograph_id: String,
 ) -> Result<ProcessorStatus, String> {

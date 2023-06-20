@@ -6,7 +6,6 @@ use uuid::Uuid;
 use crate::{
     processor::ProcessorState,
     state::{AppState, WindowState},
-    menu
 };
 
 #[tauri::command]
@@ -93,7 +92,7 @@ pub async fn open_project(
     }
 
     // open new window
-    let new_window = tauri::WindowBuilder::new(
+    let _new_window = tauri::WindowBuilder::new(
         &app,
         id.to_string(),
         tauri::WindowUrl::App("main/micrographs".into()),

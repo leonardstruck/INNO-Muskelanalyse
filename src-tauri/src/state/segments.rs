@@ -22,7 +22,7 @@ impl AppState {
         result
     }
 
-    pub fn get_segment(
+    pub fn _get_segment(
         &self,
         project_id: &Uuid,
         segment_id: &Uuid,
@@ -91,7 +91,7 @@ impl AppState {
         result
     }
 
-    pub fn get_segments_by_status(
+    pub fn _get_segments_by_status(
         &self,
         project_id: &Uuid,
         status_filter: crate::models::segments::Status,
