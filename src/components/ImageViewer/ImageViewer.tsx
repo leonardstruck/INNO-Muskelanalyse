@@ -64,7 +64,7 @@ const ImageViewer = ({ micrograph, segments }: ImageViewerProps) => {
                                 const heightY = Math.floor((height / micrograph.height) * viewerHeight);
 
                                 return (
-                                    <Popover.Root>
+                                    <Popover.Root key={segment.uuid}>
                                         <Popover.Portal>
                                             <Popover.Content className="rounded-md m-4 z-10 w-52 text-black  bg-neutral-300 bg-opacity-80 backdrop-blur-sm overflow-hidden shadow-xl">
                                                 <SegmentDetails segment={segment} />
