@@ -26,7 +26,9 @@ fn main() {
 
             if let WindowEvent::CloseRequested { .. } = event.event() {
                 // skip if the window is a viewer
-                if event.window().label().starts_with("viewer") {
+                if event.window().label().starts_with("viewer")
+                    || event.window().label().starts_with("report")
+                {
                     return;
                 }
                 // get state

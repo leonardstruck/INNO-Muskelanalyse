@@ -72,6 +72,9 @@ const ListItem = ({ micrograph, onDelete, onExport }: ListItemProps) => {
                 )}
             </div>
             <div className="flex flex-none items-center gap-x-4">
+                <Button className="bg-slate-800 hover:bg-slate-700" disabled={micrograph.status == "Error" || micrograph.status == "Pending"}
+                    onClick={() => openReport(micrograph.uuid)}
+                >Show Report</Button>
                 <Button disabled={micrograph.status == "Error" || micrograph.status == "Pending"}
                     onClick={() => openViewer(micrograph.uuid)}
                 >Open in Viewer</Button>
@@ -171,6 +174,18 @@ const openViewer = async (micrographId: string) => {
     const id = Math.random().toString(36).substring(7);
     const webview = new WebviewWindow(`viewer:${id}`, {
         url: `/viewer/?project=${project_id}&micrograph=${micrographId}`,
-        title: `Viewer`        
+        title: `Viewer`
+    });
+}
+
+const openReport = async (micrographId: string) => {
+    const { WebviewWindow, getCurrent } = await import("@tauri-apps/api/window")
+    // get the current window label
+    const project_id = getCurrent().label;
+    // generate random id for the new window
+    const id = Math.random().toString(36).substring(7);
+    const webview = new WebviewWindow(`report:${id}`, {
+        url: `/report/?project=${project_id}&micrograph=${micrographId}`,
+        title: `Report`
     });
 }
