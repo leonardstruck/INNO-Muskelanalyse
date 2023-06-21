@@ -74,16 +74,20 @@ impl Processor {
 
                     match preprocessing {
                         Ok(output) => {
-                            debug!(
-                                "Preprocessing output: {:?}, {:?}",
-                                output.stdout, output.stderr
-                            );
-
                             // trim output to the actual JSON (remove warnings)
                             // trim from the first '[' to the last ']'
                             let output = output.stdout;
                             let output = output.trim_start_matches(|c| c != '[');
                             let output = output.trim_end_matches(|c| c != ']');
+
+                            // remove all newline characters
+                            let output = output.replace("\n", "");
+
+                            // remove all commas that are next to a closing bracket or opening bracket (this is a hack to fix the dirty JSON)
+                            let output = output.replace("],", "]");
+                            let output = output.replace("[,", "[");
+
+                            debug!("Preprocessing output: {}", output);
 
                             let result: Vec<PreprocessingResultItem> =
                                 serde_json::from_str(&output).unwrap();
