@@ -12,8 +12,6 @@ pub struct ProcessorState(pub chashmap::CHashMap<String, Processor>);
 #[derive(Serialize, Clone)]
 pub enum Status {
     Preparing,
-    Processing,
-    Complete,
 }
 
 pub struct Processor {

@@ -27,12 +27,10 @@ struct AnalysisResult {
     angle: f32,
     midpoint_x: f32,
     midpoint_y: f32,
-    status: AnalysisStatus,
 }
 
 #[derive(Deserialize, Debug)]
 struct AnalysisOutput {
-    status: String,
     data: Vec<AnalysisResult>,
 }
 
@@ -74,11 +72,18 @@ impl Processor {
             }
 
             // split segments into chunks of 50
-            let segment_chunks: Vec<Vec<Segment>> = segments.chunks(50).map(|x| x.to_vec()).collect();
+            let segment_chunks: Vec<Vec<Segment>> =
+                segments.chunks(50).map(|x| x.to_vec()).collect();
 
             // iterate over segments and run analysis
             for segment_chunk in segment_chunks {
-                debug!("Analyzing segments: {:?}", segment_chunk.iter().map(|x| x.uuid.clone()).collect::<Vec<String>>());
+                debug!(
+                    "Analyzing segments: {:?}",
+                    segment_chunk
+                        .iter()
+                        .map(|x| x.uuid.clone())
+                        .collect::<Vec<String>>()
+                );
                 let mut command = match utils::python_command(app.app_handle(), "analysis") {
                     Ok(command) => command,
                     Err(err) => {
@@ -135,12 +140,12 @@ impl Processor {
                         location_y: None,
                         status: Some(Status::Ok),
                     };
-    
+
                     match state.update_segment(&project_id, &changeset) {
                         Err(err) => debug!("Failed to update segment: {:?}", err),
                         _ => (),
                     }
-    
+
                     // update job count in processor state (wrapped in mutex)
                     {
                         let processor_state = app.state::<ProcessorState>();
@@ -148,9 +153,10 @@ impl Processor {
                             .0
                             .get_mut(&micrograph_id.to_string())
                             .unwrap();
-                        processor_state.completed_jobs = processor_state.completed_jobs.map(|x| x + 1);
+                        processor_state.completed_jobs =
+                            processor_state.completed_jobs.map(|x| x + 1);
                     }
-                }    
+                }
             }
 
             // update processor state

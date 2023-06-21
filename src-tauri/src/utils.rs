@@ -29,36 +29,6 @@ pub fn resolve_bin_path(app: &tauri::AppHandle, name: &str) -> String {
     resource_dir.join(name).to_str().unwrap().to_string()
 }
 
-pub struct FileAssociation {
-    pub name: String,
-    pub extensions: Vec<String>,
-}
-
-pub fn resolve_file_association() -> Result<FileAssociation, ()> {
-    // load package.json (static file)
-    let package_json = include_str!("../../package.json");
-
-    // parse package.json
-    let package_json: serde_json::Value = serde_json::from_str(&package_json).unwrap();
-
-    // get filetypeAssociation object
-    let file_association = package_json["filetypeAssociation"].as_object().unwrap();
-
-    // get filetypeAssociation.name
-    let name = file_association["name"].as_str().unwrap();
-
-    // get filetypeAssociation.extensions
-    let extensions = file_association["extensions"].as_array().unwrap();
-
-    Ok(FileAssociation {
-        name: name.to_string(),
-        extensions: extensions
-            .iter()
-            .map(|extension| extension.as_str().unwrap().to_string())
-            .collect(),
-    })
-}
-
 pub fn python_command(app: tauri::AppHandle, name: &str) -> Result<Command, String> {
     let resource_path = app
         .path_resolver()
