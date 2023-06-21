@@ -6,9 +6,10 @@ import EmptyState from "../../components/micrographs/EmptyState";
 import { Tab } from "@headlessui/react";
 import List from "../../components/micrographs/List";
 import clsx from "clsx";
-import { LayoutGrid, LayoutList, Loader2 } from "lucide-react";
+import { Import, LayoutGrid, LayoutList, Loader2 } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { useEffect } from "react";
+import Grid from "../../components/micrographs/Grid";
 
 const MicrographsPage = () => {
     const queryClient = useQueryClient();
@@ -55,7 +56,7 @@ const MicrographsPage = () => {
         <Tab.Group>
             <Tab.List className="flex justify-between">
                 <div>
-                    <Button variant={"secondary"} onClick={() => mutate_import()}>Import Micrograph</Button>
+                    <Button variant={"secondary"} onClick={() => mutate_import()}><Import className="mr-2 h-4 w-4" />Import Micrograph</Button>
                 </div>
                 <div>
                     <Tab>{({ selected }) => (<TabItem {...{ selected }}><LayoutList className="h-4" /></TabItem>)}</Tab>
@@ -64,7 +65,7 @@ const MicrographsPage = () => {
             </Tab.List>
             <Tab.Panels className={"mt-4"}>
                 <Tab.Panel><List micrographs={data} onDelete={mutate_delete} onExport={mutate_export} /></Tab.Panel>
-                <Tab.Panel>Grid View</Tab.Panel>
+                <Tab.Panel><Grid micrographs={data} onDelete={mutate_delete} onExport={mutate_export} /></Tab.Panel>
             </Tab.Panels>
         </Tab.Group>
     )

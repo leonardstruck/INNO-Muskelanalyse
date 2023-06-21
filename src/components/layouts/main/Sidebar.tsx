@@ -107,8 +107,8 @@ const Sidebar = () => {
                                         </ul>
                                     </nav>
                                     <div className="flex flex-col gap-2">
-                                        <Button variant="secondary" size="sm" onClick={handle_create_project}><FilePlus className="mr-2" /> New Project</Button>
-                                        <Button variant="default" size="sm" onClick={handle_open_project}><FileSearch className="mr-2" /> Open Project</Button>
+                                        <Button variant="secondary" size="sm" onClick={handle_create_project}><FilePlus className="mr-2 h-4 w-4" /> New Project</Button>
+                                        <Button variant="default" size="sm" onClick={handle_open_project}><FileSearch className="mr-2 h-4 w-4" /> Open Project</Button>
                                     </div>
                                 </div>
                             </Dialog.Panel>
@@ -149,8 +149,8 @@ const Sidebar = () => {
                         </ul>
                     </nav>
                     <div className="flex flex-col gap-2">
-                        <Button variant="secondary" size="sm" onClick={handle_create_project}><FilePlus className="mr-2" /> New Project</Button>
-                        <Button variant="default" size="sm" onClick={handle_open_project}><FileSearch className="mr-2" /> Open Project</Button>
+                        <Button variant="secondary" size="sm" onClick={handle_create_project}><FilePlus className="mr-2 h-4 w-4" /> New Project</Button>
+                        <Button variant="default" size="sm" onClick={handle_open_project}><FileSearch className="mr-2 h-4 w-4" /> Open Project</Button>
                     </div>
                 </div>
             </div>
