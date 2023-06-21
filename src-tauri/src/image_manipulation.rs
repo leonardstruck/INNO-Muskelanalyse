@@ -1,35 +1,40 @@
-use image::{self, imageops::FilterType, io::Reader};
-use std::fs::File;
-use std::io::BufReader;
+use image;
 
 pub fn generate_thumbnail(path: String) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
-    // Open the file
-    let file = File::open(&path)?;
-    let reader = BufReader::new(file);
+    let file = std::fs::File::open(path).expect("Failed to open file");
 
-    // Create Image Reader and turn off size limits
-    let mut image_reader = Reader::new(reader).with_guessed_format()?;
+    let reader = std::io::BufReader::new(file);
+
+    let mut image_reader = image::io::Reader::new(reader)
+        .with_guessed_format()
+        .expect("Failed to read micrograph");
 
     image_reader.no_limits();
 
-    // Decode the image
-    let image = image_reader.decode()?;
+    let image = image_reader.decode().unwrap();
 
-    // Get the aspect ratio of the image
+    // get aspect ratio of micrograph
     let aspect_ratio = image.width() as f32 / image.height() as f32;
 
-    // Calculate the thumbnail size
-    let thumbnail_size = if aspect_ratio > 1.0 {
-        (512, (512.0 / aspect_ratio) as u32)
+    // calculate thumbnail image size
+    let desired_size = 512;
+    let display_size = if aspect_ratio > 1.0 {
+        (desired_size, (desired_size as f32 / aspect_ratio) as u32)
     } else {
-        (((512.0 * aspect_ratio) as u32), 512)
+        (((desired_size as f32 * aspect_ratio) as u32), desired_size)
     };
 
-    // Create the thumbnail
-    let thumbnail = image.resize_exact(thumbnail_size.0, thumbnail_size.1, FilterType::Lanczos3);
+    // create thumbnail image
+    let thumbnail_image = image
+        .resize(
+            display_size.0,
+            display_size.1,
+            image::imageops::FilterType::Lanczos3,
+        )
+        .to_rgb16();
 
-    // Convert the thumbnail to a binary Vec<u8>
-    let thumbnail_bin = thumbnail.to_rgb8().into_vec();
+    // convert thumbnail image to binary vec<u8>
+    let thumbnail_bin = convert_image_to_binary(thumbnail_image)?;
 
     Ok(thumbnail_bin)
 }
