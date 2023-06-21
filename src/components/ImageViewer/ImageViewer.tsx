@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
+import { ReactZoomPanPinchContentRef, TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
 import type { CachedMicrograph } from "../../../src-tauri/bindings/CachedMicrograph";
 import type { CachedSegment } from "../../../src-tauri/bindings/CachedSegment";
 import { convertFileSrc } from "@tauri-apps/api/tauri";
@@ -8,7 +8,6 @@ import clsx from "clsx";
 
 import SegmentDetails from "./SegmentDetails";
 
-import useMouse from '@react-hook/mouse-position'
 import { Button } from "../ui/button";
 import * as Popover from "@radix-ui/react-popover";
 
@@ -19,6 +18,7 @@ type ImageViewerProps = {
 
 const ImageViewer = ({ micrograph, segments }: ImageViewerProps) => {
     const viewerRef = useRef<HTMLImageElement>(null);
+    const transformRef = useRef<ReactZoomPanPinchContentRef>(null);
 
     const [viewerWidth, setViewerWidth] = useState<number>(0);
     const [viewerHeight, setViewerHeight] = useState<number>(0);
@@ -44,13 +44,14 @@ const ImageViewer = ({ micrograph, segments }: ImageViewerProps) => {
             setViewerWidth(viewerRef.current.width);
             setViewerHeight(viewerRef.current.height);
         }
+        transformRef.current?.centerView();
     }
 
     return (
         <>
             {micrograph && micrograph.display_img && micrograph.width && micrograph.height && (
                 <>
-                    <TransformWrapper>
+                    <TransformWrapper doubleClick={{ disabled: true }} ref={transformRef}>
                         <TransformComponent wrapperStyle={{ width: "100%", height: "100%", margin: 0, padding: 0 }}>
                             <Image src={convertFileSrc(micrograph.display_img)} alt={micrograph.name} width={micrograph.width} height={micrograph.height} ref={viewerRef} />
                             {segments && showSegments && segments.map(segment => {

@@ -171,6 +171,6 @@ const openViewer = async (micrographId: string) => {
     const id = Math.random().toString(36).substring(7);
     const webview = new WebviewWindow(`viewer:${id}`, {
         url: `/viewer/?project=${project_id}&micrograph=${micrographId}`,
-        title: `Viewer`        
+        title: `Viewer`,
     });
 }

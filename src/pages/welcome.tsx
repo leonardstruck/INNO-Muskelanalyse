@@ -10,7 +10,7 @@ const { version, author, displayName, filetypeAssociation, homepage } = packageI
 
 const Welcome: NextPageWithLayout = () => {
     const [parent] = useAutoAnimate();
-    const ready = useQuery<Promise<Boolean>, string>(["ready"], fetch_is_ready, {
+    const ready = useQuery<Boolean, string>(["ready"], fetch_is_ready, {
         retry: false,
         refetchOnWindowFocus: false,
         refetchOnMount: false,
@@ -18,7 +18,19 @@ const Welcome: NextPageWithLayout = () => {
         refetchInterval: false,
         refetchIntervalInBackground: false,
         onError: (err) => { console.error(err) }
-    })
+    });
+
+    const recentProject = useQuery<string, string>(["recentProject"], async () => await invoke<string>("recent_project"), {
+        retry: false,
+        refetchOnWindowFocus: false,
+        refetchOnMount: false,
+        refetchOnReconnect: false,
+        refetchInterval: false,
+        refetchIntervalInBackground: false,
+        onError: (err) => { console.error(err) },
+    });
+
+
 
     return (
         <div className="gradient-bg h-full w-full">
@@ -47,7 +59,7 @@ const Welcome: NextPageWithLayout = () => {
                         <div className="grid grid-cols-5 gap-1 py-4">
                             <Item Icon={FilePlusIcon} onClick={handle_create_project}>Create a new Project</Item>
                             <Item Icon={FileSearchIcon} onClick={handle_open_project}>Open Project</Item>
-                            <Item Icon={FileClockIcon} disabled>Open Recent</Item>
+                            <Item Icon={FileClockIcon} disabled={recentProject.isLoading || !recentProject.data} onClick={() => recentProject.data && handle_open_recent_project(recentProject.data)}>Open Recent</Item>
                             <Item Icon={XIcon} onClick={handle_close_window}>Close</Item>
                         </div>
                     )
@@ -115,6 +127,13 @@ const handle_open_project = async () => {
         })
     }
 }
+
+const handle_open_recent_project = async (path: string) => {
+    console.log(path)
+    await invoke("open_project", { path }).catch(err => {
+        import("@tauri-apps/api/dialog").then(dialog => dialog.message(err, { type: "error", title: "Something went wrong" }));
+    })
+};
 
 const handle_close_window = async () => {
     const window = await import("@tauri-apps/api/window");

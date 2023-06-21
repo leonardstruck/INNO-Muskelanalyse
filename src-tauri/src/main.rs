@@ -8,7 +8,6 @@ use tauri_plugin_log::LogTarget;
 
 mod commands;
 mod image_manipulation;
-mod menu;
 mod migrations;
 mod models;
 mod processor;
@@ -19,8 +18,6 @@ mod utils;
 fn main() {
     let _ = fix_path_env::fix();
     tauri::Builder::default()
-        .menu(menu::create_menu())
-        .on_menu_event(menu::menu_event_handler)
         .on_window_event(|event| {
             use tauri::WindowEvent;
 
@@ -44,6 +41,7 @@ fn main() {
             crate::commands::resolve_requirements::check_requirements,
             crate::commands::processor::get_processor_status,
             crate::commands::window::open_project,
+            crate::commands::window::recent_project,
             crate::commands::micrographs::get_micrographs,
             crate::commands::micrographs::get_micrograph,
             crate::commands::micrographs::import_micrographs,
@@ -56,6 +54,7 @@ fn main() {
                 .targets([LogTarget::LogDir, LogTarget::Stdout, LogTarget::Webview])
                 .build(),
         )
+        .plugin(tauri_plugin_store::Builder::default().build())
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

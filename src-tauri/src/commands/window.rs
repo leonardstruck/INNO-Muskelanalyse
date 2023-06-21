@@ -1,6 +1,7 @@
 use diesel::Connection;
-use log::error;
+use log::{debug, error};
 use tauri::Manager;
+use tauri_plugin_store::StoreBuilder;
 use uuid::Uuid;
 
 use crate::{
@@ -15,6 +16,7 @@ pub async fn open_project(
     processor_state: tauri::State<'_, ProcessorState>,
     path: String,
 ) -> Result<(), String> {
+    debug!("Opening project: {}", path);
     // check if there's already a window with this project path
     let existing_window = state.is_project_already_open(&path);
 
@@ -81,7 +83,39 @@ pub async fn open_project(
         connection,
     };
 
-    state.add_window(new_window, path);
+    state.add_window(new_window, path.clone());
+
+    // store recent project
+    {
+        let handle = app.app_handle();
+        let store_path = app
+            .path_resolver()
+            .app_data_dir()
+            .unwrap()
+            .join("recent-project.bin");
+
+        debug!(
+            "Storing recent project: {} in {}",
+            path,
+            store_path.display()
+        );
+        let mut store = StoreBuilder::new(handle, store_path).build();
+        match store.insert(
+            "recent-project".into(),
+            serde_json::Value::String(path.clone()),
+        ) {
+            Ok(_) => {}
+            Err(e) => {
+                error!("Error storing recent project: {}", e);
+            }
+        }
+        match store.save() {
+            Ok(_) => {}
+            Err(e) => {
+                error!("Error saving store: {}", e);
+            }
+        }
+    }
 
     // populate processor
     match processor_state.populate(&app, &id) {
@@ -108,4 +142,32 @@ pub async fn open_project(
     }
 
     Ok(())
+}
+
+#[tauri::command]
+pub async fn recent_project(app: tauri::AppHandle) -> Result<String, String> {
+    let store_path = app
+        .path_resolver()
+        .app_data_dir()
+        .unwrap()
+        .join("recent-project.bin");
+    let mut store = StoreBuilder::new(app, store_path).build();
+    match store.load() {
+        Ok(_) => {}
+        Err(e) => {
+            error!("Error loading store: {}", e);
+            return Err("Error loading store".into());
+        }
+    }
+
+    match store.get("recent-project") {
+        Some(path) => {
+            debug!("Recent project found: {}", path);
+            Ok(path.as_str().unwrap().to_string())
+        }
+        None => {
+            debug!("No recent project found");
+            Err("No recent project found".into())
+        }
+    }
 }

@@ -7,9 +7,11 @@ import { Dialog, Transition } from '@headlessui/react'
 import clsx from 'clsx'
 
 import packageInfo from '../../../../package.json';
-import { MenuIcon, XIcon } from 'lucide-react'
+import { FilePlus, FileSearch, MenuIcon, Plus, XIcon } from 'lucide-react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
+import { Button } from '../../ui/button'
+import { invoke } from '@tauri-apps/api/tauri'
 
 const rubik = Rubik({
     variable: "--font-rubik",
@@ -75,7 +77,7 @@ const Sidebar = () => {
                                     </div>
                                 </Transition.Child>
                                 {/* Sidebar component, swap this element with another sidebar if you like */}
-                                <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-gray-900 px-6 pb-2 ring-1 ring-white/10">
+                                <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-gray-900 px-6 py-6 ring-1 ring-white/10">
                                     <div className="flex h-16 shrink-0 items-center">
                                         <span>{packageInfo.displayName}</span>
                                     </div>
@@ -104,6 +106,10 @@ const Sidebar = () => {
                                             </li>
                                         </ul>
                                     </nav>
+                                    <div className="flex flex-col gap-2">
+                                        <Button variant="secondary" size="sm" onClick={handle_create_project}><FilePlus className="mr-2" /> New Project</Button>
+                                        <Button variant="default" size="sm" onClick={handle_open_project}><FileSearch className="mr-2" /> Open Project</Button>
+                                    </div>
                                 </div>
                             </Dialog.Panel>
                         </Transition.Child>
@@ -114,7 +120,7 @@ const Sidebar = () => {
             {/* Static sidebar for desktop */}
             <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
                 {/* Sidebar component, swap this element with another sidebar if you like */}
-                <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-gray-900 px-6">
+                <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-gray-900 px-6 py-6">
                     <div className="flex h-16 shrink-0 items-center">
                         <span>{packageInfo.displayName}</span>
                     </div>
@@ -142,6 +148,10 @@ const Sidebar = () => {
                             </li>
                         </ul>
                     </nav>
+                    <div className="flex flex-col gap-2">
+                        <Button variant="secondary" size="sm" onClick={handle_create_project}><FilePlus className="mr-2" /> New Project</Button>
+                        <Button variant="default" size="sm" onClick={handle_open_project}><FileSearch className="mr-2" /> Open Project</Button>
+                    </div>
                 </div>
             </div>
 
@@ -156,3 +166,39 @@ const Sidebar = () => {
 }
 
 export default Sidebar
+
+const { filetypeAssociation } = packageInfo;
+
+const handle_create_project = async () => {
+    const dialog = await import("@tauri-apps/api/dialog");
+
+    const result = await dialog.save({
+        filters: [{
+            name: `${filetypeAssociation.name} Project`,
+            extensions: filetypeAssociation.extensions
+        }]
+    })
+
+    if (result) {
+        await invoke("open_project", { path: result }).catch(err => {
+            dialog.message(err, { type: "error", title: "Something went wrong" })
+        })
+    }
+}
+
+const handle_open_project = async () => {
+    const dialog = await import("@tauri-apps/api/dialog");
+
+    const result = await dialog.open({
+        filters: [{
+            name: `${filetypeAssociation.name} Project`,
+            extensions: filetypeAssociation.extensions
+        }]
+    })
+
+    if (result) {
+        await invoke("open_project", { path: result }).catch(err => {
+            dialog.message(err, { type: "error", title: "Something went wrong" })
+        })
+    }
+}
