@@ -1,4 +1,4 @@
-import { GaugeIcon, MicroscopeIcon } from "lucide-react"
+import { MicroscopeIcon } from "lucide-react"
 
 const navigation = [
     { name: 'Micrographs', href: '/main/micrographs', icon: MicroscopeIcon },
