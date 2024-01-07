@@ -1,7 +1,4 @@
-import { useRouter } from 'next/router'
 import Sidebar from './Sidebar'
-import { useEffect } from 'react'
-
 
 type MainLayoutProps = {
     children: React.ReactNode
