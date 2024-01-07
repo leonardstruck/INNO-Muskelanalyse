@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::{path::PathBuf, process::exit};
 
 use log::{debug, error};
 use tauri::{
@@ -11,28 +11,17 @@ pub async fn check_requirements(
     app: tauri::AppHandle,
     window: tauri::Window,
 ) -> Result<bool, String> {
-    match check_if_python_is_installed() {
-        Ok(false) => {
-            message(
-                Some(&window),
-                "Error: Python 3 is not installed",
-                "This application requires Python 3 to be installed. Please install Python 3 and try again",
-
-            );
-            app.exit(1)
-        }
+    // check if python is installed
+    match resolve_python_bin() {
+        Ok(_) => {}
         Err(e) => {
-            error!("Error checking if python is installed: {}", e);
-            message(
+            error!("Error resolving python: {}", e);
+            let _ = message(
                 Some(&window),
-                "Error: Python 3 is not installed",
-                "This application requires Python 3 to be installed. Please install Python 3 and try again",
-
+                "Python not found",
+                "Python is required to run this application. Please install Python and try again.",
             );
-            app.exit(1)
-        }
-        Ok(true) => {
-            debug!("Python is installed")
+            exit(1);
         }
     }
 
@@ -60,30 +49,33 @@ pub async fn check_requirements(
     Ok(true)
 }
 
-fn check_if_python_is_installed() -> Result<bool, String> {
-    let output = match Command::new("python").args(["--version"]).output() {
-        Ok(output) => output,
-        Err(error) => {
-            error!("Failed to check if python is installed: {}", error);
-            return Err(format!("Failed to check if python is installed: {}", error));
+#[memoize::memoize]
+fn resolve_python_bin() -> Result<String, String> {
+    // first check if python is set in the environment variables
+    if let Ok(python_path) = std::env::var("PYTHON_BIN") {
+        if std::path::Path::new(&python_path).exists() {
+            debug!("Found python in environment variables: {}", python_path);
+            return Ok(python_path);
         }
-    };
-
-    // check if process was successful
-    if !output.status.success() {
-        return Err(format!(
-            "Failed to check if python is installed: {}",
-            output.stderr
-        ));
     }
 
-    debug!("Python version: {},{}", output.stdout, output.stderr);
-
-    if output.stdout.contains("Python") {
-        Ok(true)
-    } else {
-        Ok(false)
+    // if not, check if python3 is in the path
+    if let Ok(python_path) = which::which("python3") {
+        if python_path.exists() {
+            debug!("Found python3 in path: {}", python_path.to_string_lossy());
+            return Ok(python_path.to_str().unwrap().to_string());
+        }
     }
+
+    // if not, check if python is in the path
+    if let Ok(python_path) = which::which("python") {
+        if python_path.exists() {
+            debug!("Found python in path: {}", python_path.to_string_lossy());
+            return Ok(python_path.to_str().unwrap().to_string());
+        }
+    }
+
+    return Err("Python not found".to_string());
 }
 
 fn get_vendor_dir(app: tauri::AppHandle) -> Result<PathBuf, String> {
@@ -124,6 +116,8 @@ fn resolve_python_vendors(app: tauri::AppHandle) -> Result<Vec<PathBuf>, String>
 }
 
 fn ensure_python_venv(app: tauri::AppHandle, path: PathBuf) -> Result<(), String> {
+    let python_bin = resolve_python_bin()?;
+
     let venv_name = path.file_name().unwrap().to_str().unwrap();
     let venv_path = app
         .path_resolver()
@@ -133,7 +127,7 @@ fn ensure_python_venv(app: tauri::AppHandle, path: PathBuf) -> Result<(), String
         .join(venv_name);
 
     if !venv_path.exists() {
-        let output = Command::new("python")
+        let output = Command::new(python_bin)
             .args(["-m", "venv", venv_path.to_str().unwrap()])
             .output()
             .map_err(|e| e.to_string())?;
